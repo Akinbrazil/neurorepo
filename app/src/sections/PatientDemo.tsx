@@ -13,7 +13,8 @@ import {
   Sun,
   Sparkles,
   Wifi,
-  WifiOff
+  WifiOff,
+  Mic
 } from 'lucide-react';
 import VREnvironments from './VREnvironments';
 
@@ -105,6 +106,22 @@ const PatientDemo: React.FC = () => {
     setIsVRActive(false);
   };
 
+  // Request microphone permissions
+  const requestPermissions = async () => {
+    setIsRequestingPermission(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setHasMicPermission(true);
+      // Immediately stop the stream as we just want to verify permission
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      console.error('Permission denied:', err);
+      setHasMicPermission(false);
+    } finally {
+      setIsRequestingPermission(false);
+    }
+  };
+
   if (isVRActive) {
     return (
       <div className="relative w-full h-screen">
@@ -192,11 +209,17 @@ const PatientDemo: React.FC = () => {
               <Button
                 onClick={startVR}
                 size="lg"
-                className={`bg-gradient-to-r ${envInfo.color} text-white shadow-xl hover:shadow-2xl transition-shadow px-8 py-6 text-lg`}
+                disabled={hasMicPermission !== true}
+                className={`bg-gradient-to-r ${envInfo.color} text-white shadow-xl hover:shadow-2xl transition-shadow px-8 py-6 text-lg ${hasMicPermission !== true ? 'opacity-50 grayscale' : ''}`}
               >
                 <Headset className="w-6 h-6 mr-3" />
                 Iniciar Experiência VR
               </Button>
+              {hasMicPermission !== true && (
+                <p className="mt-4 text-rose-400 text-sm font-medium animate-pulse">
+                  Por favor, conceda permissão de microfone para continuar.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -251,6 +274,37 @@ const PatientDemo: React.FC = () => {
                       <p className="text-white font-medium">Preciso de Ajuda</p>
                       <p className="text-white/60 text-sm">Toque no ícone vermelho para alertar</p>
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <Mic className="w-5 h-5 text-purple-400" />
+                  Permissões Necessárias
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                    <div className="flex items-center gap-3">
+                      <Mic className={`w-6 h-6 ${hasMicPermission ? 'text-emerald-400' : 'text-white/40'}`} />
+                      <div>
+                        <p className="text-white font-medium">Microfone</p>
+                        <p className="text-white/60 text-xs">Necessário para falar com o terapeuta</p>
+                      </div>
+                    </div>
+                    {hasMicPermission === true ? (
+                      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Permitido</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={requestPermissions}
+                        disabled={isRequestingPermission}
+                        className="bg-purple-600 hover:bg-purple-700 text-xs"
+                      >
+                        {isRequestingPermission ? 'Solicitando...' : 'Permitir'}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>

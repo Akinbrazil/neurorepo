@@ -218,153 +218,171 @@ const TherapistDemo: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {/* Visual Monitor - Mirroring Patient's View */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-3 block flex items-center gap-2">
-                      <Eye className="w-4 h-4 text-purple-500" />
-                      Monitor Visual (Perspectiva do Paciente)
-                    </label>
-                    <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative border-4 border-slate-800 shadow-inner">
-                      {/* Simulated Mirror View */}
-                      <div className={`absolute inset-0 opacity-40 ${currentEnvironment === 'anxiety' ? 'bg-gradient-to-br from-emerald-900 to-teal-950' :
-                        currentEnvironment === 'depression' ? 'bg-gradient-to-br from-yellow-700 to-orange-900' :
-                          'bg-gradient-to-br from-blue-900 to-indigo-950'
-                        }`} />
-
-                      {/* Telemetry Pointer (Mirroring Patient Gaze) */}
-                      {telemetry.length > 0 && (
-                        <div
-                          className="absolute w-12 h-12 border-4 border-white/50 rounded-full flex items-center justify-center transition-all duration-100 ease-out shadow-[0_0_20px_rgba(255,255,255,0.5)]"
-                          style={{
-                            left: `${telemetry[telemetry.length - 1].gazeX}%`,
-                            top: `${telemetry[telemetry.length - 1].gazeY}%`,
-                            transform: 'translate(-50%, -50%)'
-                          }}
-                        >
-                          <div className="w-1 h-1 bg-white rounded-full" />
-                        </div>
-                      )}
-
-                      {/* Overlay Info */}
-                      <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end backdrop-blur-sm bg-black/20 p-2 rounded-lg">
-                        <div className="text-[10px] text-white/70 font-mono">
-                          GAZE: {telemetry.length > 0 ? `${telemetry[telemetry.length - 1].gazeX.toFixed(1)}, ${telemetry[telemetry.length - 1].gazeY.toFixed(1)}` : 'WAITING...'}
-                        </div>
-                        <Badge variant="outline" className="text-[8px] border-white/20 text-white uppercase">
-                          {getEnvironmentInfo(currentEnvironment).name}
-                        </Badge>
-                      </div>
-
-                      {!sessionActive && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-white/40 text-sm italic">
-                          Aguardando início da sessão...
-                        </div>
-                      )}
-                      {sessionActive && patientStatus === 'waiting' && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-                            <span className="text-white text-xs font-medium">Aguardando conexão...</span>
-                          </div>
-                        </div>
-                      )}
+                {!sessionActive ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Play className="w-8 h-8 text-purple-600" />
                     </div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                      Iniciar Sessão de Demonstração
+                    </h3>
+                    <p className="text-slate-500 mb-6 max-w-md mx-auto">
+                      Inicie uma sessão de demonstração para testar os ambientes VR
+                      e os controles do terapeuta em tempo real.
+                    </p>
+                    <Button onClick={startSession} size="lg" className="bg-purple-600 hover:bg-purple-700">
+                      <Play className="w-5 h-5 mr-2" />
+                      Iniciar Sessão Demo
+                    </Button>
                   </div>
-
-                  {/* Report / Clinical Notes */}
-                  <div>
-                    <div className="flex justify-between items-center mb-3">
-                      <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-purple-500" />
-                        Observações e Diagnóstico
+                ) : (
+                  <div className="space-y-6">
+                    {/* Visual Monitor - Mirroring Patient's View */}
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 mb-3 block flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-purple-500" />
+                        Monitor Visual (Perspectiva do Paciente)
                       </label>
-                      {saveStatus === 'saved' && (
-                        <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> Salvo localmente
-                        </span>
-                      )}
-                    </div>
-                    <textarea
-                      value={clinicalNotes}
-                      onChange={(e) => setClinicalNotes(e.target.value)}
-                      placeholder="Escreva aqui suas observações clínicas, diagnósticos e reações observadas durante a sessão..."
-                      className="w-full h-32 p-4 rounded-xl border-2 border-slate-100 focus:border-purple-300 focus:ring-0 transition-all text-sm resize-none bg-slate-50/50"
-                    />
-                  </div>
-                  {/* Environment Selector */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-3 block">
-                      Ambiente Clínico
-                    </label>
-                    <div className="grid grid-cols-3 gap-3">
-                      {(['anxiety', 'depression', 'burnout'] as ClinicalEnvironment[]).map((env) => {
-                        const info = getEnvironmentInfo(env);
-                        const Icon = info.icon;
-                        return (
-                          <button
-                            key={env}
-                            onClick={() => switchEnvironment(env)}
-                            className={`p-4 rounded-xl border-2 transition-all text-left ${currentEnvironment === env
-                              ? 'border-purple-500 bg-purple-50'
-                              : 'border-slate-200 hover:border-purple-200 hover:bg-slate-50'
-                              }`}
+                      <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative border-4 border-slate-800 shadow-inner">
+                        {/* Simulated Mirror View */}
+                        <div className={`absolute inset-0 opacity-40 ${currentEnvironment === 'anxiety' ? 'bg-gradient-to-br from-emerald-900 to-teal-950' :
+                          currentEnvironment === 'depression' ? 'bg-gradient-to-br from-yellow-700 to-orange-900' :
+                            'bg-gradient-to-br from-blue-900 to-indigo-950'
+                          }`} />
+
+                        {/* Telemetry Pointer (Mirroring Patient Gaze) */}
+                        {telemetry.length > 0 && (
+                          <div
+                            className="absolute w-12 h-12 border-4 border-white/50 rounded-full flex items-center justify-center transition-all duration-100 ease-out shadow-[0_0_20px_rgba(255,255,255,0.5)]"
+                            style={{
+                              left: `${telemetry[telemetry.length - 1].gazeX}%`,
+                              top: `${telemetry[telemetry.length - 1].gazeY}%`,
+                              transform: 'translate(-50%, -50%)'
+                            }}
                           >
-                            <Icon className={`w-6 h-6 ${info.color} mb-2`} />
-                            <p className="text-sm font-medium text-slate-900">{info.name}</p>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                            <div className="w-1 h-1 bg-white rounded-full" />
+                          </div>
+                        )}
 
-                  {/* Intensity Slider */}
-                  <div>
-                    <div className="flex justify-between items-center mb-3">
-                      <label className="text-sm font-medium text-slate-700">
-                        Intensidade do Ambiente
+                        {/* Overlay Info */}
+                        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end backdrop-blur-sm bg-black/20 p-2 rounded-lg">
+                          <div className="text-[10px] text-white/70 font-mono">
+                            GAZE: {telemetry.length > 0 ? `${telemetry[telemetry.length - 1].gazeX.toFixed(1)}, ${telemetry[telemetry.length - 1].gazeY.toFixed(1)}` : 'WAITING...'}
+                          </div>
+                          <Badge variant="outline" className="text-[8px] border-white/20 text-white uppercase">
+                            {getEnvironmentInfo(currentEnvironment).name}
+                          </Badge>
+                        </div>
+
+                        {!sessionActive && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-white/40 text-sm italic">
+                            Aguardando início da sessão...
+                          </div>
+                        )}
+                        {sessionActive && patientStatus === 'waiting' && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                              <span className="text-white text-xs font-medium">Aguardando conexão...</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Report / Clinical Notes */}
+                    <div>
+                      <div className="flex justify-between items-center mb-3">
+                        <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                          <Activity className="w-4 h-4 text-purple-500" />
+                          Observações e Diagnóstico
+                        </label>
+                        {saveStatus === 'saved' && (
+                          <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" /> Salvo localmente
+                          </span>
+                        )}
+                      </div>
+                      <textarea
+                        value={clinicalNotes}
+                        onChange={(e) => setClinicalNotes(e.target.value)}
+                        placeholder="Escreva aqui suas observações clínicas, diagnósticos e reações observadas durante a sessão..."
+                        className="w-full h-32 p-4 rounded-xl border-2 border-slate-100 focus:border-purple-300 focus:ring-0 transition-all text-sm resize-none bg-slate-50/50"
+                      />
+                    </div>
+                    {/* Environment Selector */}
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 mb-3 block">
+                        Ambiente Clínico
                       </label>
-                      <Badge variant="outline">Nível {intensity}</Badge>
+                      <div className="grid grid-cols-3 gap-3">
+                        {(['anxiety', 'depression', 'burnout'] as ClinicalEnvironment[]).map((env) => {
+                          const info = getEnvironmentInfo(env);
+                          const Icon = info.icon;
+                          return (
+                            <button
+                              key={env}
+                              onClick={() => switchEnvironment(env)}
+                              className={`p-4 rounded-xl border-2 transition-all text-left ${currentEnvironment === env
+                                ? 'border-purple-500 bg-purple-50'
+                                : 'border-slate-200 hover:border-purple-200 hover:bg-slate-50'
+                                }`}
+                            >
+                              <Icon className={`w-6 h-6 ${info.color} mb-2`} />
+                              <p className="text-sm font-medium text-slate-900">{info.name}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <Slider
-                      value={[intensity]}
-                      onValueChange={(value) => setIntensity(value[0] as 1 | 2 | 3)}
-                      min={1}
-                      max={3}
-                      step={1}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between mt-2 text-xs text-slate-500">
-                      <span>Suave</span>
-                      <span>Moderado</span>
-                      <span>Intenso</span>
-                    </div>
-                  </div>
 
-                  {/* Voice Controls */}
-                  <div className="flex gap-3">
-                    <Button
-                      variant={isMicActive ? "default" : "outline"}
-                      onClick={toggleMic}
-                      className={isMicActive ? "bg-rose-500 hover:bg-rose-600" : ""}
-                    >
-                      {isMicActive ? <Mic className="w-4 h-4 mr-2" /> : <MicOff className="w-4 h-4 mr-2" />}
-                      {isMicActive ? 'Falando...' : 'Falar'}
-                    </Button>
-                    <Button
-                      variant={isMuted ? "default" : "outline"}
-                      onClick={toggleMute}
-                      className={isMuted ? "bg-slate-700" : ""}
-                    >
-                      {isMuted ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                      {isMuted ? 'Mudo' : 'Som'}
-                    </Button>
-                    <Button variant="destructive" onClick={endSession} className="ml-auto">
-                      <Square className="w-4 h-4 mr-2" />
-                      Encerrar
-                    </Button>
+                    {/* Intensity Slider */}
+                    <div>
+                      <div className="flex justify-between items-center mb-3">
+                        <label className="text-sm font-medium text-slate-700">
+                          Intensidade do Ambiente
+                        </label>
+                        <Badge variant="outline">Nível {intensity}</Badge>
+                      </div>
+                      <Slider
+                        value={[intensity]}
+                        onValueChange={(value) => setIntensity(value[0] as 1 | 2 | 3)}
+                        min={1}
+                        max={3}
+                        step={1}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between mt-2 text-xs text-slate-500">
+                        <span>Suave</span>
+                        <span>Moderado</span>
+                        <span>Intenso</span>
+                      </div>
+                    </div>
+
+                    {/* Voice Controls */}
+                    <div className="flex gap-3">
+                      <Button
+                        variant={isMicActive ? "default" : "outline"}
+                        onClick={toggleMic}
+                        className={isMicActive ? "bg-rose-500 hover:bg-rose-600" : ""}
+                      >
+                        {isMicActive ? <Mic className="w-4 h-4 mr-2" /> : <MicOff className="w-4 h-4 mr-2" />}
+                        {isMicActive ? 'Falando...' : 'Falar'}
+                      </Button>
+                      <Button
+                        variant={isMuted ? "default" : "outline"}
+                        onClick={toggleMute}
+                        className={isMuted ? "bg-slate-700" : ""}
+                      >
+                        {isMuted ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
+                        {isMuted ? 'Mudo' : 'Som'}
+                      </Button>
+                      <Button variant="destructive" onClick={endSession} className="ml-auto">
+                        <Square className="w-4 h-4 mr-2" />
+                        Encerrar
+                      </Button>
+                    </div>
                   </div>
-                </div>
                 )}
               </CardContent>
             </Card>
