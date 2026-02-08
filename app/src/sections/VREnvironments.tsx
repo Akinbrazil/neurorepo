@@ -22,7 +22,7 @@ import {
 
 import { supabase } from '@/lib/supabase';
 
-type ClinicalEnvironment = 'forest' | 'beach' | 'classroom';
+type ClinicalEnvironment = 'anxiety' | 'depression' | 'burnout';
 
 interface VREnvironmentsProps {
   sessionId?: string;
@@ -131,7 +131,7 @@ const BreathingGuide: React.FC<{ isActive: boolean }> = ({ isActive }) => {
 const VREnvironments: React.FC<VREnvironmentsProps> = ({
   sessionId,
   patientId,
-  initialEnvironment = 'forest',
+  initialEnvironment = 'anxiety',
   initialIntensity = 1,
   onEnvironmentChange,
   onComfortCheck,
@@ -171,14 +171,14 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
   }, [onEnvironmentChange]);
 
   const nextEnvironment = useCallback(() => {
-    const envs: ClinicalEnvironment[] = ['forest', 'beach', 'classroom'];
+    const envs: ClinicalEnvironment[] = ['anxiety', 'depression', 'burnout'];
     const currentIndex = envs.indexOf(currentEnvironment);
     const nextIndex = (currentIndex + 1) % envs.length;
     switchEnvironment(envs[nextIndex]);
   }, [currentEnvironment, switchEnvironment]);
 
   const prevEnvironment = useCallback(() => {
-    const envs: ClinicalEnvironment[] = ['forest', 'beach', 'classroom'];
+    const envs: ClinicalEnvironment[] = ['anxiety', 'depression', 'burnout'];
     const currentIndex = envs.indexOf(currentEnvironment);
     const prevIndex = (currentIndex - 1 + envs.length) % envs.length;
     switchEnvironment(envs[prevIndex]);
@@ -355,12 +355,12 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     `;
 
     switch (currentEnvironment) {
-      case 'forest':
-        return getForestHTML() + baseScene;
-      case 'beach':
-        return getBeachHTML() + baseScene;
-      case 'classroom':
-        return getClassroomHTML() + baseScene;
+      case 'anxiety':
+        return getAnxietyHTML() + baseScene;
+      case 'depression':
+        return getDepressionHTML() + baseScene;
+      case 'burnout':
+        return getBurnoutHTML() + baseScene;
       default:
         return baseScene;
     }
@@ -368,75 +368,76 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
 
   const getSkyColor = () => {
     switch (currentEnvironment) {
-      case 'forest':
+      case 'anxiety':
         return intensity === 1 ? '#87CEEB' : intensity === 2 ? '#5DADE2' : '#2E86AB';
-      case 'beach':
+      case 'depression':
+        return intensity === 1 ? '#FFF9C4' : intensity === 2 ? '#FFF176' : '#FFEE58';
+      case 'burnout':
         return intensity === 1 ? '#F0F9FF' : intensity === 2 ? '#BAE6FD' : '#7DD3FC';
-      case 'classroom':
-        return '#F1F5F9';
       default:
         return '#87CEEB';
     }
   };
 
-  // Environment 1: Relaxation Forest
-  const getForestHTML = () => {
+  // Environment 1: Anxiety (Relaxation Forest)
+  const getAnxietyHTML = () => {
     return `
       <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="${intensity === 1 ? '#90EE90' : '#7CB342'}"></a-plane>
-      ${Array.from({ length: intensity * 10 }).map(() => `
+      ${Array.from({ length: intensity * 15 }).map(() => `
         <a-cone position="${(Math.random() - 0.5) * 40} 2 ${(Math.random() - 0.5) * 40 - 10}" radius-bottom="1.5" radius-top="0" height="4" color="hsl(${120 + Math.random() * 20}, 60%, 40%)"></a-cone>
         <a-cylinder position="${(Math.random() - 0.5) * 40} 1 ${(Math.random() - 0.5) * 40 - 10}" radius="0.3" height="2" color="#8D6E63"></a-cylinder>
       `).join('')}
     `;
   };
 
-  // Environment 2: Mindfulness Beach
-  const getBeachHTML = () => {
+  // Environment 2: Depression (Activation Garden)
+  const getDepressionHTML = () => {
     return `
-      <!-- Sand -->
-      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#F3E5AB"></a-plane>
-      <!-- Water -->
-      <a-plane position="0 0.1 -20" rotation="-90 0 0" width="100" height="40" color="#0077be" material="opacity: 0.6; transparent: true"></a-plane>
-      <!-- Sun -->
-      <a-sphere position="0 10 -40" radius="5" color="#FFD700" material="shader: flat"></a-sphere>
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#8BC34A"></a-plane>
+      ${Array.from({ length: intensity * 20 }).map(() => `
+        <a-sphere position="${(Math.random() - 0.5) * 30} ${0.2 + Math.random() * 0.5} ${(Math.random() - 0.5) * 30}" radius="0.3" color="hsl(${Math.random() * 360}, 80%, 60%)"></a-sphere>
+      `).join('')}
+      <a-entity position="0 0 -10">
+        <a-cylinder radius="2" height="0.1" color="#FFFFFF"></a-cylinder>
+        <a-text value="Ativacao Positiva" align="center" position="0 2 0" color="#333"></a-text>
+      </a-entity>
     `;
   };
 
-  // Environment 3: Social Exposure Classroom
-  const getClassroomHTML = () => {
+  // Environment 3: Burnout (Decompression Beach)
+  const getBurnoutHTML = () => {
     return `
-      <a-plane position="0 0.01 -10" rotation="-90 0 0" width="30" height="30" color="#E2E8F0"></a-plane>
-      <a-plane position="0 5 -25" width="30" height="10" color="#F1F5F9"></a-plane>
-      <a-plane position="0 4 -24.8" width="12" height="6" color="#1E293B"></a-plane>
-      ${Array.from({ length: intensity * 4 }).map(() => `
-        <a-box position="${(Math.random() - 0.5) * 15} 1 ${-10 - Math.random() * 8}" width="2" height="1" depth="1" color="#CBD5E1"></a-box>
-      `).join('')}
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#F3E5AB"></a-plane>
+      <a-plane position="0 0.1 -20" rotation="-90 0 0" width="100" height="40" color="#0077be" material="opacity: 0.6; transparent: true">
+        <a-animation attribute="position" from="0 0.1 -20" to="0 0.15 -20" dur="3000" repeat="indefinite" direction="alternate"></a-animation>
+      </a-plane>
+      <a-sphere position="0 15 -50" radius="8" color="#FFD700" material="shader: flat; lighting: false"></a-sphere>
     `;
   };
 
   // Get environment display info
   const getEnvironmentInfo = () => {
     switch (currentEnvironment) {
-      case 'forest':
+      case 'anxiety':
         return {
-          name: 'Floresta de Relaxamento',
-          description: 'Relaxamento profundo e calma',
+          name: 'Controle de Ansiedade',
+          description: 'Foco em respiração e calma natural',
           icon: Wind,
           color: 'from-emerald-500 to-teal-600'
         };
-      case 'beach':
+      case 'depression':
         return {
-          name: 'Praia de Mindfulness',
-          description: 'Atenção plena e serenidade',
+          name: 'Ativação (Depressão)',
+          description: 'Cores vibrantes e estímulos positivos',
+          icon: Sparkles,
+          color: 'from-yellow-400 to-orange-500'
+        };
+      case 'burnout':
+        return {
+          name: 'Descompressão (Burnout)',
+          description: 'Isolamento sereno e regeneração',
           icon: Sun,
           color: 'from-blue-400 to-indigo-500'
-        };
-      case 'classroom':
-        return {
-          name: 'Sala de Aula Social',
-          description: 'Treino de exposição e convívio',
-          icon: Sparkles,
-          color: 'from-slate-500 to-slate-700'
         };
     }
   };
@@ -466,6 +467,13 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
             <a-scene embedded vr-mode-ui="enabled: true" renderer="antialias: true; colorManagement: true;">
               ${getEnvironmentHTML()}
               
+              <!-- Immersive HUD (3D) -->
+              <a-entity position="0 2.5 -4" rotation="10 0 0">
+                <a-plane width="3" height="0.8" color="#000" material="opacity: 0.6; transparent: true" radius="0.1"></a-plane>
+                <a-text value="${envInfo.name.toUpperCase()}" align="center" position="0 0.15 0.01" scale="0.6 0.6 0.6" color="#FFF"></a-text>
+                <a-text value="Status: Sincronizado" align="center" position="0 -0.15 0.01" scale="0.4 0.4 0.4" color="#10B981"></a-text>
+              </a-entity>
+              
               <!-- Comfort Check Icon in 3D -->
               <a-entity position="0 2 -3">
                 <a-sphere
@@ -486,8 +494,8 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
         }}
       />
 
-      {/* Breathing Guide Overlay (only for forest) */}
-      <BreathingGuide isActive={currentEnvironment === 'forest'} />
+      {/* Breathing Guide Overlay (only for anxiety) */}
+      <BreathingGuide isActive={currentEnvironment === 'anxiety'} />
 
       {/* UI Overlay */}
       <div className="absolute inset-0 pointer-events-none">

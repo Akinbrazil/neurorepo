@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-type ClinicalEnvironment = 'forest' | 'beach' | 'classroom';
+type ClinicalEnvironment = 'anxiety' | 'depression' | 'burnout';
 type PatientStatus = 'waiting' | 'connected' | 'in-session' | 'completed';
 
 interface TelemetryData {
@@ -51,7 +51,7 @@ interface ComfortEvent {
 const TherapistDemo: React.FC = () => {
   // Session state
   const [sessionActive, setSessionActive] = useState(false);
-  const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('forest');
+  const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('anxiety');
   const [intensity, setIntensity] = useState<1 | 2 | 3>(2);
   const [isMicActive, setIsMicActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -147,18 +147,18 @@ const TherapistDemo: React.FC = () => {
     // Update patient link
     const baseUrl = window.location.origin;
     const demoToken = 'demo-' + Math.random().toString(36).substring(2, 10);
-    setPatientLink(`${baseUrl}/paciente-demo?token=${demoToken}&env=${env}&intensity=${intensity}`);
+    setPatientLink(`${baseUrl}/?view=patient-demo&token=${demoToken}&env=${env}&intensity=${intensity}`);
   };
 
   // Environment info
   const getEnvironmentInfo = (env: ClinicalEnvironment) => {
     switch (env) {
-      case 'forest':
-        return { name: 'Floresta', icon: Wind, color: 'text-emerald-500', bg: 'bg-emerald-50' };
-      case 'beach':
-        return { name: 'Praia', icon: Sun, color: 'text-blue-500', bg: 'bg-blue-50' };
-      case 'classroom':
-        return { name: 'Escola', icon: Sparkles, color: 'text-slate-500', bg: 'bg-slate-50' };
+      case 'anxiety':
+        return { name: 'Ansiedade', icon: Wind, color: 'text-emerald-500', bg: 'bg-emerald-50' };
+      case 'depression':
+        return { name: 'Depressão', icon: Sparkles, color: 'text-yellow-500', bg: 'bg-yellow-50' };
+      case 'burnout':
+        return { name: 'Burnout', icon: Sun, color: 'text-blue-500', bg: 'bg-blue-50' };
     }
   };
 
@@ -230,7 +230,7 @@ const TherapistDemo: React.FC = () => {
                         Ambiente Clínico
                       </label>
                       <div className="grid grid-cols-3 gap-3">
-                        {(['forest', 'beach', 'classroom'] as ClinicalEnvironment[]).map((env) => {
+                        {(['anxiety', 'depression', 'burnout'] as ClinicalEnvironment[]).map((env) => {
                           const info = getEnvironmentInfo(env);
                           const Icon = info.icon;
                           return (
@@ -238,8 +238,8 @@ const TherapistDemo: React.FC = () => {
                               key={env}
                               onClick={() => switchEnvironment(env)}
                               className={`p-4 rounded-xl border-2 transition-all text-left ${currentEnvironment === env
-                                  ? 'border-purple-500 bg-purple-50'
-                                  : 'border-slate-200 hover:border-purple-200 hover:bg-slate-50'
+                                ? 'border-purple-500 bg-purple-50'
+                                : 'border-slate-200 hover:border-purple-200 hover:bg-slate-50'
                                 }`}
                             >
                               <Icon className={`w-6 h-6 ${info.color} mb-2`} />
@@ -479,7 +479,7 @@ const TherapistDemo: React.FC = () => {
                               {event.type === 'comfortable' ? 'Conforto Confirmado' : 'Desconforto'}
                             </p>
                             <p className="text-xs text-slate-500">
-                              {event.timestamp.toLocaleTimeString('pt-BR')} • {getEnvironmentInfo(event.environment).name}
+                              {event.timestamp.toLocaleTimeString('pt-BR')} • {getEnvironmentInfo(event.environment)?.name || 'Ambiente'}
                             </p>
                           </div>
                         </div>

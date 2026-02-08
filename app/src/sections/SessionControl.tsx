@@ -18,7 +18,7 @@ import {
   Eye,
   Settings,
   Trees,
-  GraduationCap,
+  Sparkles,
   Timer,
   AlertTriangle,
   CheckCircle,
@@ -48,7 +48,7 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [sessionTime, setSessionTime] = useState(0);
   const [intensity, setIntensity] = useState<1 | 2 | 3>(1);
-  const [environment, setEnvironment] = useState<'forest' | 'beach' | 'classroom'>('forest');
+  const [environment, setEnvironment] = useState<'anxiety' | 'depression' | 'burnout'>('anxiety');
 
   // Voice/Audio state
   const [isMicOn, setIsMicOn] = useState(false);
@@ -399,39 +399,39 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     <button
-                      onClick={() => setEnvironment('forest')}
-                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'forest'
+                      onClick={() => setEnvironment('anxiety')}
+                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'anxiety'
                         ? 'border-emerald-500 bg-emerald-50'
                         : 'border-slate-200 hover:border-slate-300'
                         }`}
                     >
-                      <Trees className={`w-8 h-8 mx-auto mb-2 ${environment === 'forest' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                      <p className={`text-xs font-medium ${environment === 'forest' ? 'text-emerald-700' : 'text-slate-600'}`}>
-                        Floresta
+                      <Trees className={`w-8 h-8 mx-auto mb-2 ${environment === 'anxiety' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                      <p className={`text-xs font-medium ${environment === 'anxiety' ? 'text-emerald-700' : 'text-slate-600'}`}>
+                        Ansiedade
                       </p>
                     </button>
                     <button
-                      onClick={() => setEnvironment('beach')}
-                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'beach'
+                      onClick={() => setEnvironment('burnout')}
+                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'burnout'
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-slate-200 hover:border-slate-300'
                         }`}
                     >
-                      <Volume2 className={`w-8 h-8 mx-auto mb-2 ${environment === 'beach' ? 'text-blue-600' : 'text-slate-400'}`} />
-                      <p className={`text-xs font-medium ${environment === 'beach' ? 'text-blue-700' : 'text-slate-600'}`}>
-                        Praia
+                      <Volume2 className={`w-8 h-8 mx-auto mb-2 ${environment === 'burnout' ? 'text-blue-600' : 'text-slate-400'}`} />
+                      <p className={`text-xs font-medium ${environment === 'burnout' ? 'text-blue-700' : 'text-slate-600'}`}>
+                        Burnout
                       </p>
                     </button>
                     <button
-                      onClick={() => setEnvironment('classroom')}
-                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'classroom'
-                        ? 'border-slate-500 bg-slate-50'
+                      onClick={() => setEnvironment('depression')}
+                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'depression'
+                        ? 'border-yellow-500 bg-yellow-50'
                         : 'border-slate-200 hover:border-slate-300'
                         }`}
                     >
-                      <GraduationCap className={`w-8 h-8 mx-auto mb-2 ${environment === 'classroom' ? 'text-slate-600' : 'text-slate-400'}`} />
-                      <p className={`text-xs font-medium ${environment === 'classroom' ? 'text-slate-700' : 'text-slate-600'}`}>
-                        Escola
+                      <Sparkles className={`w-8 h-8 mx-auto mb-2 ${environment === 'depression' ? 'text-yellow-600' : 'text-slate-400'}`} />
+                      <p className={`text-xs font-medium ${environment === 'depression' ? 'text-yellow-700' : 'text-slate-600'}`}>
+                        Depressão
                       </p>
                     </button>
                   </div>
@@ -505,27 +505,27 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`aspect-video rounded-xl flex items-center justify-center ${environment === 'forest'
+                <div className={`aspect-video rounded-xl flex items-center justify-center ${environment === 'anxiety'
                   ? 'bg-gradient-to-br from-emerald-800 to-teal-900'
-                  : environment === 'beach'
+                  : environment === 'burnout'
                     ? 'bg-gradient-to-br from-blue-400 to-indigo-600'
-                    : 'bg-gradient-to-br from-slate-600 to-slate-800'
+                    : 'bg-gradient-to-br from-yellow-400 to-orange-600'
                   }`}>
                   <div className="text-center text-white">
-                    {environment === 'forest' ? (
+                    {environment === 'anxiety' ? (
                       <>
                         <Trees className="w-16 h-16 mx-auto mb-2 opacity-80" />
-                        <p className="font-medium">Floresta Serena</p>
+                        <p className="font-medium">Ansiedade (Floresta)</p>
                       </>
-                    ) : environment === 'beach' ? (
+                    ) : environment === 'burnout' ? (
                       <>
                         <Volume2 className="w-16 h-16 mx-auto mb-2 opacity-80" />
-                        <p className="font-medium">Praia Mindfulness</p>
+                        <p className="font-medium">Burnout (Praia)</p>
                       </>
                     ) : (
                       <>
-                        <GraduationCap className="w-16 h-16 mx-auto mb-2 opacity-80" />
-                        <p className="font-medium">Sala Social</p>
+                        <Sparkles className="w-16 h-16 mx-auto mb-2 opacity-80" />
+                        <p className="font-medium">Depressão (Jardim)</p>
                       </>
                     )}
                     <p className="text-sm opacity-60 mt-1">Intensidade: {intensity}/3</p>

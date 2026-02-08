@@ -17,11 +17,11 @@ import {
 } from 'lucide-react';
 import VREnvironments from './VREnvironments';
 
-type ClinicalEnvironment = 'forest' | 'beach' | 'classroom';
+type ClinicalEnvironment = 'anxiety' | 'depression' | 'burnout';
 
 const PatientDemo: React.FC = () => {
   const [isVRActive, setIsVRActive] = useState(false);
-  const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('forest');
+  const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('anxiety');
   const [intensity, setIntensity] = useState<1 | 2 | 3>(2);
   const [isConnected, setIsConnected] = useState(true);
   const [showInstructions, setShowInstructions] = useState(true);
@@ -32,7 +32,7 @@ const PatientDemo: React.FC = () => {
     const env = params.get('env') as ClinicalEnvironment;
     const int = params.get('intensity');
 
-    if (env && ['forest', 'beach', 'classroom'].includes(env)) {
+    if (env && ['anxiety', 'depression', 'burnout'].includes(env)) {
       setCurrentEnvironment(env);
     }
     if (int) {
@@ -51,29 +51,29 @@ const PatientDemo: React.FC = () => {
   // Get environment info
   const getEnvironmentInfo = (env: ClinicalEnvironment) => {
     switch (env) {
-      case 'forest':
+      case 'anxiety':
         return {
-          name: 'Floresta de Relaxamento',
-          description: 'Ambiente para relaxamento profundo',
+          name: 'Controle de Ansiedade',
+          description: 'Foco em respiração e calma natural',
           icon: Wind,
           color: 'from-emerald-500 to-teal-600',
           textColor: 'text-emerald-600'
         };
-      case 'beach':
+      case 'depression':
         return {
-          name: 'Praia de Mindfulness',
-          description: 'Foco no presente e serenidade',
+          name: 'Ativação (Depressão)',
+          description: 'Cores vibrantes e estímulos positivos',
+          icon: Sparkles,
+          color: 'from-yellow-400 to-orange-500',
+          textColor: 'text-yellow-600'
+        };
+      case 'burnout':
+        return {
+          name: 'Descompressão (Burnout)',
+          description: 'Isolamento sereno e regeneração',
           icon: Sun,
           color: 'from-blue-400 to-indigo-500',
           textColor: 'text-blue-600'
-        };
-      case 'classroom':
-        return {
-          name: 'Escola Social',
-          description: 'Treino de interação e segurança',
-          icon: Sparkles,
-          color: 'from-slate-500 to-slate-700',
-          textColor: 'text-slate-600'
         };
     }
   };
@@ -263,7 +263,7 @@ const PatientDemo: React.FC = () => {
               Ambientes Disponíveis
             </h3>
             <div className="grid grid-cols-3 gap-4">
-              {(['forest', 'beach', 'classroom'] as ClinicalEnvironment[]).map((env) => {
+              {(['anxiety', 'depression', 'burnout'] as ClinicalEnvironment[]).map((env) => {
                 const info = getEnvironmentInfo(env);
                 const Icon = info.icon;
                 const isActive = env === currentEnvironment;
@@ -271,8 +271,8 @@ const PatientDemo: React.FC = () => {
                   <div
                     key={env}
                     className={`p-4 rounded-xl border-2 transition-all ${isActive
-                        ? `border-purple-500 bg-purple-500/20`
-                        : 'border-white/10 bg-white/5'
+                      ? `border-purple-500 bg-purple-500/20`
+                      : 'border-white/10 bg-white/5'
                       }`}
                   >
                     <Icon className={`w-8 h-8 ${info.textColor} mb-2`} />
