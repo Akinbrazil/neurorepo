@@ -25,6 +25,8 @@ const PatientDemo: React.FC = () => {
   const [intensity, setIntensity] = useState<1 | 2 | 3>(2);
   const [isConnected, setIsConnected] = useState(true);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
 
   // Parse URL parameters
   useEffect(() => {
