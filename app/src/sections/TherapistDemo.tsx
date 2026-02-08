@@ -77,7 +77,7 @@ const TherapistDemo: React.FC = () => {
   useEffect(() => {
     const demoToken = 'demo-' + Math.random().toString(36).substring(2, 10);
     const baseUrl = window.location.origin;
-    setPatientLink(`${baseUrl}/paciente-demo?token=${demoToken}&env=${currentEnvironment}&intensity=${intensity}`);
+    setPatientLink(`${baseUrl}/?view=patient-demo&token=${demoToken}&env=${currentEnvironment}&intensity=${intensity}`);
   }, [currentEnvironment, intensity]);
 
   // Real-time sync with Supabase
@@ -134,6 +134,15 @@ const TherapistDemo: React.FC = () => {
     setSessionActive(false);
     setPatientStatus('completed');
     setTelemetry([]);
+  };
+
+  // Handle clinical notes
+  const handleNotesChange = (val: string) => {
+    setClinicalNotes(val);
+    setSaveStatus('saving');
+    // Simulate auto-save
+    const timeout = setTimeout(() => setSaveStatus('saved'), 1000);
+    return () => clearTimeout(timeout);
   };
 
   // Toggle mic
@@ -305,7 +314,7 @@ const TherapistDemo: React.FC = () => {
                       </div>
                       <textarea
                         value={clinicalNotes}
-                        onChange={(e) => setClinicalNotes(e.target.value)}
+                        onChange={(e) => handleNotesChange(e.target.value)}
                         placeholder="Escreva aqui suas observações clínicas, diagnósticos e reações observadas durante a sessão..."
                         className="w-full h-32 p-4 rounded-xl border-2 border-slate-100 focus:border-purple-300 focus:ring-0 transition-all text-sm resize-none bg-slate-50/50"
                       />

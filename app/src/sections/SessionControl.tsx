@@ -65,6 +65,8 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
   const [gazeX, setGazeX] = useState(0);
   const [gazeY, setGazeY] = useState(0);
   const [headMovement, setHeadMovement] = useState(0);
+  const [clinicalNotes, setClinicalNotes] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   // Connection state
   const [patientConnected, setPatientConnected] = useState(false);
