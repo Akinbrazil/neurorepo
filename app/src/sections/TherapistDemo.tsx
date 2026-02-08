@@ -25,8 +25,10 @@ import {
   Square,
   BarChart3,
   Settings,
-  LogOut
+  LogOut,
+  Eye
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 type ClinicalEnvironment = 'anxiety' | 'depression' | 'burnout';
@@ -226,8 +228,8 @@ const TherapistDemo: React.FC = () => {
                     <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative border-4 border-slate-800 shadow-inner">
                       {/* Simulated Mirror View */}
                       <div className={`absolute inset-0 opacity-40 ${currentEnvironment === 'anxiety' ? 'bg-gradient-to-br from-emerald-900 to-teal-950' :
-                          currentEnvironment === 'depression' ? 'bg-gradient-to-br from-yellow-700 to-orange-900' :
-                            'bg-gradient-to-br from-blue-900 to-indigo-950'
+                        currentEnvironment === 'depression' ? 'bg-gradient-to-br from-yellow-700 to-orange-900' :
+                          'bg-gradient-to-br from-blue-900 to-indigo-950'
                         }`} />
 
                       {/* Telemetry Pointer (Mirroring Patient Gaze) */}
