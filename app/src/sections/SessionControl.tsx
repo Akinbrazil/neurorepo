@@ -159,6 +159,15 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
     }
   };
 
+  // Handle clinical notes
+  const handleNotesChange = (val: string) => {
+    setClinicalNotes(val);
+    setSaveStatus('saving');
+    // Simulate auto-save
+    const timeout = setTimeout(() => setSaveStatus('saved'), 1000);
+    return () => clearTimeout(timeout);
+  };
+
   // Toggle microphone
   const toggleMic = async () => {
     if (!isMicOn) {
