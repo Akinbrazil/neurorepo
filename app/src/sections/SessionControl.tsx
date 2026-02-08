@@ -15,15 +15,14 @@ import {
   ArrowLeft,
   Heart,
   Activity,
-  Eye,
+  Monitor,
   Settings,
   Trees,
   Sparkles,
   Timer,
   AlertTriangle,
   CheckCircle,
-  Radio,
-  Monitor
+  Radio
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { PatientWithDASS21 } from '@/types';
