@@ -498,45 +498,78 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
               </CardContent>
             </Card>
 
-            {/* VR Preview */}
+            {/* Monitor Clínico e diagnóstico */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Eye className="w-5 h-5 text-blue-500" />
-                  Preview do Ambiente
-                </CardTitle>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Monitor className="w-5 h-5 text-purple-600" />
+                    <CardTitle className="text-lg">Monitor Clínico</CardTitle>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] animate-pulse border-purple-200 text-purple-600 uppercase">
+                    Ao Vivo
+                  </Badge>
+                </div>
+                <CardDescription>Perspectiva e reações do paciente</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className={`aspect-video rounded-xl flex items-center justify-center ${environment === 'anxiety'
-                  ? 'bg-gradient-to-br from-emerald-800 to-teal-900'
-                  : environment === 'burnout'
-                    ? 'bg-gradient-to-br from-blue-400 to-indigo-600'
-                    : 'bg-gradient-to-br from-yellow-400 to-orange-600'
-                  }`}>
-                  <div className="text-center text-white">
-                    {environment === 'anxiety' ? (
-                      <>
-                        <Trees className="w-16 h-16 mx-auto mb-2 opacity-80" />
-                        <p className="font-medium">Ansiedade (Floresta)</p>
-                      </>
-                    ) : environment === 'burnout' ? (
-                      <>
-                        <Volume2 className="w-16 h-16 mx-auto mb-2 opacity-80" />
-                        <p className="font-medium">Burnout (Praia)</p>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-16 h-16 mx-auto mb-2 opacity-80" />
-                        <p className="font-medium">Depressão (Jardim)</p>
-                      </>
-                    )}
-                    <p className="text-sm opacity-60 mt-1">Intensidade: {intensity}/3</p>
+              <CardContent className="space-y-6">
+                {/* Visual Monitor - Patient Perspective Mirror */}
+                <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative border-4 border-slate-800 shadow-inner">
+                  {/* Perspective Gradient Background depending on environment */}
+                  <div className={`absolute inset-0 opacity-40 ${environment === 'anxiety' ? 'bg-gradient-to-br from-emerald-900 to-teal-950' :
+                    environment === 'depression' ? 'bg-gradient-to-br from-yellow-700 to-orange-900' :
+                      'bg-gradient-to-br from-blue-900 to-indigo-950'
+                    }`} />
+
+                  {/* Gaze Pointer Mirror */}
+                  {patientConnected && (
+                    <div
+                      className="absolute w-12 h-12 border-4 border-white/40 rounded-full flex items-center justify-center transition-all duration-100 ease-out shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                      style={{
+                        left: `${gazeX}%`,
+                        top: `${gazeY}%`,
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                    >
+                      <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                    </div>
+                  )}
+
+                  {!patientConnected && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-8 h-8 border-4 border-slate-700 border-t-purple-500 rounded-full animate-spin" />
+                        <span className="text-slate-400 text-[10px] font-medium uppercase tracking-wider">Aguardando Conexão...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Info Overlay */}
+                  <div className="absolute bottom-3 left-3 flex gap-2">
+                    <Badge className="bg-black/40 backdrop-blur-md border-white/10 text-[9px] uppercase">
+                      {environment}
+                    </Badge>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center justify-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${intensity >= 1 ? 'bg-emerald-400' : 'bg-slate-600'}`} />
-                  <div className={`w-3 h-3 rounded-full ${intensity >= 2 ? 'bg-yellow-400' : 'bg-slate-600'}`} />
-                  <div className={`w-3 h-3 rounded-full ${intensity >= 3 ? 'bg-rose-400' : 'bg-slate-600'}`} />
+
+                {/* Diagnostic Report Section */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-purple-500" /> RELATÓRIO E MONITORAMENTO
+                    </label>
+                    {saveStatus === 'saved' && (
+                      <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> AUTO-SALVO
+                      </span>
+                    )}
+                  </div>
+                  <textarea
+                    value={clinicalNotes}
+                    onChange={(e) => handleNotesChange(e.target.value)}
+                    placeholder="Escreva aqui suas observações clínicas, diagnósticos e reações observadas..."
+                    className="w-full h-32 p-3 rounded-xl border-2 border-slate-100 focus:border-purple-300 focus:ring-0 transition-all text-sm resize-none bg-slate-50/50"
+                  />
                 </div>
               </CardContent>
             </Card>
