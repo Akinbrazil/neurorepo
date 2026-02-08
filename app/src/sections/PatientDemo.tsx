@@ -107,7 +107,7 @@ const PatientDemo: React.FC = () => {
     return (
       <div className="relative w-full h-screen">
         <VREnvironments
-          sessionId="demo-session"
+          sessionId="demo"
           patientId="demo-patient"
           initialEnvironment={currentEnvironment}
           initialIntensity={intensity}

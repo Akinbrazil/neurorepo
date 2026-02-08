@@ -97,8 +97,8 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
   useEffect(() => {
     if (!isSessionActive || !patient.id) return;
 
-    const sessionId = `session-${patient.id}`;
-    const channel = supabase.channel(`session:${sessionId}`);
+    const normalizedSessionId = (patient.id && patient.id !== '1') ? `session-${patient.id}` : 'demo';
+    const channel = supabase.channel(`session:${normalizedSessionId}`);
 
     channel
       .on('broadcast', { event: 'telemetry' }, ({ payload }) => {
@@ -179,8 +179,8 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
 
     // Broadcast mic status
     if (patient.id) {
-      const sessionId = `session-${patient.id}`;
-      supabase.channel(`session:${sessionId}`).send({
+      const normalizedSessionId = (patient.id && patient.id !== '1') ? `session-${patient.id}` : 'demo';
+      supabase.channel(`session:${normalizedSessionId}`).send({
         type: 'broadcast',
         event: 'mic-status',
         payload: { isMicOn: !isMicOn }

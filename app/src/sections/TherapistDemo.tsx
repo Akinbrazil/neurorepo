@@ -76,25 +76,26 @@ const TherapistDemo: React.FC = () => {
     setPatientLink(`${baseUrl}/paciente-demo?token=${demoToken}&env=${currentEnvironment}&intensity=${intensity}`);
   }, [currentEnvironment, intensity]);
 
-  // Simulate telemetry data when session is active
+  // Real-time sync with Supabase
   useEffect(() => {
     if (!sessionActive) return;
 
-    const interval = setInterval(() => {
-      const newData: TelemetryData = {
-        timestamp: Date.now(),
-        gazeX: 40 + Math.random() * 20,
-        gazeY: 40 + Math.random() * 20,
-        headRotationX: (Math.random() - 0.5) * 30,
-        headRotationY: (Math.random() - 0.5) * 30,
-        comfortLevel: 70 + Math.random() * 25,
-      };
+    const channel = supabase.channel('session:demo');
 
-      setTelemetry(prev => [...prev.slice(-50), newData]);
-      setLastSync(new Date());
-    }, 500);
+    channel
+      .on('broadcast', { event: 'telemetry' }, ({ payload }) => {
+        setTelemetry(prev => [...prev.slice(-50), { ...payload, timestamp: Date.now() }]);
+        setLastSync(new Date());
+      })
+      .on('broadcast', { event: 'comfort-check' }, ({ payload }) => {
+        // Handle comfort events from patient
+        console.log('Comfort event received:', payload);
+      })
+      .subscribe();
 
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [sessionActive]);
 
   // Simulate patient connection
@@ -133,7 +134,15 @@ const TherapistDemo: React.FC = () => {
 
   // Toggle mic
   const toggleMic = () => {
-    setIsMicActive(prev => !prev);
+    const newStatus = !isMicActive;
+    setIsMicActive(newStatus);
+
+    // Broadcast mic status to patient
+    supabase.channel('session:demo').send({
+      type: 'broadcast',
+      event: 'mic-status',
+      payload: { isMicOn: newStatus }
+    });
   };
 
   // Toggle mute

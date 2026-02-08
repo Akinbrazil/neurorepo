@@ -159,10 +159,12 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
   const [therapistName] = useState('Dra. Maria Silva');
 
   // Refs
-  const sceneRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<any>(null);
   const gazeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const gazeStartTimeRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const cameraRef = useRef<any>(null);
+  const reticleEntityRef = useRef<any>(null);
 
   // Environment switching
   const switchEnvironment = useCallback((env: ClinicalEnvironment) => {
@@ -220,9 +222,8 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
 
   // Broadcast gaze and comfort data to Supabase
   useEffect(() => {
-    if (!sessionId) return;
-
-    const channel = supabase.channel(`session:${sessionId}`);
+    const normalizedSessionId = sessionId || 'demo';
+    const channel = supabase.channel(`session:${normalizedSessionId}`);
 
     channel.on('broadcast', { event: 'mic-status' }, ({ payload }) => {
       setIsTherapistSpeaking(payload.isMicOn);
@@ -339,32 +340,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     }
   };
 
-  // Get environment A-Frame HTML
-  const getEnvironmentHTML = () => {
-    const baseScene = `
-      <a-sky color="${getSkyColor()}"></a-sky>
-      <a-light type="ambient" color="#BBB" intensity="${0.4 + intensity * 0.2}"></a-light>
-      <a-light type="directional" color="#FFF" intensity="${0.6 + intensity * 0.2}" position="${-3 + intensity} 8 5"></a-light>
-      
-      <!-- Camera -->
-      <a-entity position="0 1.6 0">
-        <a-camera look-controls="enabled: true" wasd-controls="enabled: false">
-          <a-cursor color="#10B981" fuse="true" fuse-timeout="2000"></a-cursor>
-        </a-camera>
-      </a-entity>
-    `;
-
-    switch (currentEnvironment) {
-      case 'anxiety':
-        return getAnxietyHTML() + baseScene;
-      case 'depression':
-        return getDepressionHTML() + baseScene;
-      case 'burnout':
-        return getBurnoutHTML() + baseScene;
-      default:
-        return baseScene;
-    }
-  };
+  // No longer using getEnvironmentHTML as a string
 
   const getSkyColor = () => {
     switch (currentEnvironment) {
@@ -379,41 +355,40 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     }
   };
 
-  // Environment 1: Anxiety (Relaxation Forest)
-  const getAnxietyHTML = () => {
-    return `
-      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="${intensity === 1 ? '#90EE90' : '#7CB342'}"></a-plane>
-      ${Array.from({ length: intensity * 15 }).map(() => `
-        <a-cone position="${(Math.random() - 0.5) * 40} 2 ${(Math.random() - 0.5) * 40 - 10}" radius-bottom="1.5" radius-top="0" height="4" color="hsl(${120 + Math.random() * 20}, 60%, 40%)"></a-cone>
-        <a-cylinder position="${(Math.random() - 0.5) * 40} 1 ${(Math.random() - 0.5) * 40 - 10}" radius="0.3" height="2" color="#8D6E63"></a-cylinder>
-      `).join('')}
-    `;
-  };
+  // Render helpers (now returning React elements instead of strings)
+  const renderAnxiety = () => (
+    <>
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color={intensity === 1 ? '#90EE90' : '#7CB342'}></a-plane>
+      {Array.from({ length: intensity * 15 }).map((_, i) => (
+        <React.Fragment key={i}>
+          <a-cone position={`${(Math.random() - 0.5) * 40} 2 ${(Math.random() - 0.5) * 40 - 10}`} radius-bottom="1.5" radius-top="0" height="4" color={`hsl(${120 + Math.random() * 20}, 60%, 40%)`}></a-cone>
+          <a-cylinder position={`${(Math.random() - 0.5) * 40} 1 ${(Math.random() - 0.5) * 40 - 10}`} radius="0.3" height="2" color="#8D6E63"></a-cylinder>
+        </React.Fragment>
+      ))}
+    </>
+  );
 
-  // Environment 2: Depression (Activation Garden)
-  const getDepressionHTML = () => {
-    return `
+  const renderDepression = () => (
+    <>
       <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#8BC34A"></a-plane>
-      ${Array.from({ length: intensity * 20 }).map(() => `
-        <a-sphere position="${(Math.random() - 0.5) * 30} ${0.2 + Math.random() * 0.5} ${(Math.random() - 0.5) * 30}" radius="0.3" color="hsl(${Math.random() * 360}, 80%, 60%)"></a-sphere>
-      `).join('')}
+      {Array.from({ length: intensity * 20 }).map((_, i) => (
+        <a-sphere key={i} position={`${(Math.random() - 0.5) * 30} ${0.2 + Math.random() * 0.5} ${(Math.random() - 0.5) * 30}`} radius="0.3" color={`hsl(${Math.random() * 360}, 80%, 60%)`}></a-sphere>
+      ))}
       <a-entity position="0 0 -10">
         <a-cylinder radius="2" height="0.1" color="#FFFFFF"></a-cylinder>
         <a-text value="Ativacao Positiva" align="center" position="0 2 0" color="#333"></a-text>
       </a-entity>
-    `;
-  };
+    </>
+  );
 
-  // Environment 3: Burnout (Decompression Beach)
-  const getBurnoutHTML = () => {
-    return `
+  const renderBurnout = () => (
+    <>
       <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#F3E5AB"></a-plane>
       <a-plane position="0 0.1 -20" rotation="-90 0 0" width="100" height="40" color="#0077be" material="opacity: 0.6; transparent: true">
-        <a-animation attribute="position" from="0 0.1 -20" to="0 0.15 -20" dur="3000" repeat="indefinite" direction="alternate"></a-animation>
       </a-plane>
       <a-sphere position="0 15 -50" radius="8" color="#FFD700" material="shader: flat; lighting: false"></a-sphere>
-    `;
-  };
+    </>
+  );
 
   // Get environment display info
   const getEnvironmentInfo = () => {
@@ -459,40 +434,74 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
   return (
     <div ref={sceneRef} className="relative w-full h-screen bg-slate-900 overflow-hidden">
       {/* A-Frame Scene */}
-      <div
-        ref={containerRef}
-        className="absolute inset-0"
-        dangerouslySetInnerHTML={{
-          __html: `
-            <a-scene embedded vr-mode-ui="enabled: true" renderer="antialias: true; colorManagement: true;">
-              ${getEnvironmentHTML()}
-              
-              <!-- Immersive HUD (3D) -->
-              <a-entity position="0 2.5 -4" rotation="10 0 0">
-                <a-plane width="3" height="0.8" color="#000" material="opacity: 0.6; transparent: true" radius="0.1"></a-plane>
-                <a-text value="${envInfo.name.toUpperCase()}" align="center" position="0 0.15 0.01" scale="0.6 0.6 0.6" color="#FFF"></a-text>
-                <a-text value="Status: Sincronizado" align="center" position="0 -0.15 0.01" scale="0.4 0.4 0.4" color="#10B981"></a-text>
+      <div ref={containerRef} className="absolute inset-0">
+        {/* @ts-ignore */}
+        <a-scene
+          embedded
+          vr-mode-ui="enabled: true"
+          renderer="antialias: false; colorManagement: true; precision: medium;"
+          // @ts-ignore
+          ref={(ref) => { if (ref) sceneRef.current = ref; }}
+        >
+          {/* @ts-ignore */}
+          <a-sky color={getSkyColor()}></a-sky>
+          {/* @ts-ignore */}
+          <a-light type="ambient" color="#BBB" intensity={0.4 + intensity * 0.2}></a-light>
+          {/* @ts-ignore */}
+          <a-light type="directional" color="#FFF" intensity={0.6 + intensity * 0.2} position={`${-3 + intensity} 8 5`}></a-light>
+
+          {/* Environments */}
+          {currentEnvironment === 'anxiety' && renderAnxiety()}
+          {currentEnvironment === 'depression' && renderDepression()}
+          {currentEnvironment === 'burnout' && renderBurnout()}
+
+          {/* Immersive HUD (3D) */}
+          {/* @ts-ignore */}
+          <a-entity position="0 2.5 -4" rotation="10 0 0">
+            {/* @ts-ignore */}
+            <a-plane width="3" height="0.8" color="#000" material="opacity: 0.6; transparent: true" radius="0.1"></a-plane>
+            {/* @ts-ignore */}
+            <a-text value={envInfo.name.toUpperCase()} align="center" position="0 0.15 0.01" scale="0.6 0.6 0.6" color="#FFF"></a-text>
+            {/* @ts-ignore */}
+            <a-text value="Status: Sincronizado" align="center" position="0 -0.15 0.01" scale="0.4 0.4 0.4" color="#10B981"></a-text>
+          </a-entity>
+
+          {/* Comfort Check Icon in 3D */}
+          {/* @ts-ignore */}
+          <a-entity position="0 2 -3">
+            {/* @ts-ignore */}
+            <a-sphere
+              radius="0.3"
+              color={comfortStatus === 'comfortable' ? '#10B981' : '#F43F5E'}
+            ></a-sphere>
+            {/* @ts-ignore */}
+            <a-text
+              value="Olhe para confirmar conforto"
+              align="center"
+              position="0 -0.6 0"
+              scale="0.5 0.5 0.5"
+              color="white"
+            ></a-text>
+          </a-entity>
+
+          {/* Camera & Optimized Cursor */}
+          {/* @ts-ignore */}
+          <a-entity position="0 1.6 0">
+            {/* @ts-ignore */}
+            <a-camera ref={cameraRef} look-controls="enabled: true" wasd-controls="enabled: false">
+              {/* @ts-ignore */}
+              <a-entity
+                ref={reticleEntityRef}
+                cursor="fuse: true; fuseTimeout: 2000"
+                position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                material="color: #10B981; shader: flat"
+              >
               </a-entity>
-              
-              <!-- Comfort Check Icon in 3D -->
-              <a-entity position="0 2 -3">
-                <a-sphere
-                  radius="0.3"
-                  color="${comfortStatus === 'comfortable' ? '#10B981' : '#F43F5E'}"
-                  animation="property: scale; to: 1.1 1.1 1.1; dur: 1000; loop: true; dir: alternate"
-                ></a-sphere>
-                <a-text
-                  value="Olhe para confirmar conforto"
-                  align="center"
-                  position="0 -0.6 0"
-                  scale="0.5 0.5 0.5"
-                  color="white"
-                ></a-text>
-              </a-entity>
-            </a-scene>
-          `
-        }}
-      />
+            </a-camera>
+          </a-entity>
+        </a-scene>
+      </div>
 
       {/* Breathing Guide Overlay (only for anxiety) */}
       <BreathingGuide isActive={currentEnvironment === 'anxiety'} />

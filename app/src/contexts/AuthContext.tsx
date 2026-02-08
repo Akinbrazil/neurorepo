@@ -28,14 +28,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkSession = async () => {
       try {
         const { user: authUser, error: authError } = await getCurrentUser();
-        
+
         if (authError || !authUser) {
           setIsLoading(false);
           return;
         }
 
         const { data: profile, error: profileError } = await getProfile(authUser.id);
-        
+
         if (profileError) {
           setError('Erro ao carregar perfil');
           setIsLoading(false);
@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (event === 'SIGNED_IN' && session?.user) {
           const { data: profile } = await getProfile(session.user.id);
           setUser(profile);
-          setCurrentView('dashboard');
+          setCurrentView(prev => (prev === 'landing' || prev === 'login') ? 'dashboard' : prev);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setCurrentView('landing');
@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.user) {
         const { data: profile, error: profileError } = await getProfile(data.user.id);
-        
+
         if (profileError) {
           throw new Error('Erro ao carregar perfil');
         }
