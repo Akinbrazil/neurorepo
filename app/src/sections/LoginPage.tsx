@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Eye, EyeOff, Loader2, ArrowLeft, Shield } from 'lucide-react';
+import { Brain, Eye, EyeOff, Loader2, ArrowLeft, Shield, Terminal, User, Activity } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const { login, register, error, isLoading, clearError, setCurrentView } = useAuth();
@@ -264,6 +264,35 @@ const LoginPage: React.FC = () => {
         <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
           <p className="text-sm text-amber-800 text-center">
             <strong>Demo:</strong> Use qualquer email e senha para testar
+          </p>
+        </div>
+
+        {/* Developer Quick Access */}
+        <div className="mt-8 pt-8 border-t border-slate-200">
+          <div className="flex items-center gap-2 mb-4 text-slate-500">
+            <Terminal className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Modo Desenvolvedor</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentView('therapist-demo')}
+              className="border-slate-300 hover:bg-slate-100 flex flex-col items-center py-6 h-auto gap-2"
+            >
+              <Activity className="w-5 h-5 text-teal-600" />
+              <span className="text-xs font-medium">Entrar como Terapeuta</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentView('patient-demo')}
+              className="border-slate-300 hover:bg-slate-100 flex flex-col items-center py-6 h-auto gap-2"
+            >
+              <User className="w-5 h-5 text-purple-600" />
+              <span className="text-xs font-medium">Entrar como Paciente</span>
+            </Button>
+          </div>
+          <p className="mt-4 text-center text-[10px] text-slate-400">
+            Acesso rápido para testes de interface e sincronização.
           </p>
         </div>
       </div>

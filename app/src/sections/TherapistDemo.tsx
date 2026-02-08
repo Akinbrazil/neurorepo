@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Users, 
-  Headset, 
-  Mic, 
-  MicOff, 
-  Volume2, 
+import {
+  Users,
+  Headset,
+  Mic,
+  MicOff,
+  Volume2,
   VolumeX,
   Send,
   Copy,
@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-type ClinicalEnvironment = 'breathing-temple' | 'sunrise-meadow' | 'sensory-void';
+type ClinicalEnvironment = 'forest' | 'beach' | 'classroom';
 type PatientStatus = 'waiting' | 'connected' | 'in-session' | 'completed';
 
 interface TelemetryData {
@@ -51,21 +51,21 @@ interface ComfortEvent {
 const TherapistDemo: React.FC = () => {
   // Session state
   const [sessionActive, setSessionActive] = useState(false);
-  const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('breathing-temple');
+  const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('forest');
   const [intensity, setIntensity] = useState<1 | 2 | 3>(2);
   const [isMicActive, setIsMicActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  
+
   // Patient state
   const [patientStatus, setPatientStatus] = useState<PatientStatus>('waiting');
   const [patientName] = useState('Paciente Demo');
   const [patientLink, setPatientLink] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
-  
+
   // Telemetry
   const [telemetry, setTelemetry] = useState<TelemetryData[]>([]);
   const [comfortEvents] = useState<ComfortEvent[]>([]);
-  
+
   // Real-time sync simulation
   const [lastSync, setLastSync] = useState<Date>(new Date());
 
@@ -89,7 +89,7 @@ const TherapistDemo: React.FC = () => {
         headRotationY: (Math.random() - 0.5) * 30,
         comfortLevel: 70 + Math.random() * 25,
       };
-      
+
       setTelemetry(prev => [...prev.slice(-50), newData]);
       setLastSync(new Date());
     }, 500);
@@ -153,12 +153,12 @@ const TherapistDemo: React.FC = () => {
   // Environment info
   const getEnvironmentInfo = (env: ClinicalEnvironment) => {
     switch (env) {
-      case 'breathing-temple':
-        return { name: 'Templo da Respiração', icon: Wind, color: 'text-cyan-500', bg: 'bg-cyan-50' };
-      case 'sunrise-meadow':
-        return { name: 'Prado do Amanhecer', icon: Sun, color: 'text-amber-500', bg: 'bg-amber-50' };
-      case 'sensory-void':
-        return { name: 'Vazio Sensorial', icon: Sparkles, color: 'text-violet-500', bg: 'bg-violet-50' };
+      case 'forest':
+        return { name: 'Floresta', icon: Wind, color: 'text-emerald-500', bg: 'bg-emerald-50' };
+      case 'beach':
+        return { name: 'Praia', icon: Sun, color: 'text-blue-500', bg: 'bg-blue-50' };
+      case 'classroom':
+        return { name: 'Escola', icon: Sparkles, color: 'text-slate-500', bg: 'bg-slate-50' };
     }
   };
 
@@ -177,9 +177,9 @@ const TherapistDemo: React.FC = () => {
                 <p className="text-xs text-slate-500">Modo Demonstração - Terapeuta</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
-              <Badge variant={sessionActive ? "default" : "secondary"} 
+              <Badge variant={sessionActive ? "default" : "secondary"}
                 className={sessionActive ? "bg-emerald-500" : ""}>
                 {sessionActive ? 'Sessão Ativa' : 'Sessão Inativa'}
               </Badge>
@@ -214,7 +214,7 @@ const TherapistDemo: React.FC = () => {
                       Iniciar Sessão de Demonstração
                     </h3>
                     <p className="text-slate-500 mb-6 max-w-md mx-auto">
-                      Inicie uma sessão de demonstração para testar os ambientes VR 
+                      Inicie uma sessão de demonstração para testar os ambientes VR
                       e os controles do terapeuta em tempo real.
                     </p>
                     <Button onClick={startSession} size="lg" className="bg-purple-600 hover:bg-purple-700">
@@ -230,18 +230,17 @@ const TherapistDemo: React.FC = () => {
                         Ambiente Clínico
                       </label>
                       <div className="grid grid-cols-3 gap-3">
-                        {(['breathing-temple', 'sunrise-meadow', 'sensory-void'] as ClinicalEnvironment[]).map((env) => {
+                        {(['forest', 'beach', 'classroom'] as ClinicalEnvironment[]).map((env) => {
                           const info = getEnvironmentInfo(env);
                           const Icon = info.icon;
                           return (
                             <button
                               key={env}
                               onClick={() => switchEnvironment(env)}
-                              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                                currentEnvironment === env
+                              className={`p-4 rounded-xl border-2 transition-all text-left ${currentEnvironment === env
                                   ? 'border-purple-500 bg-purple-50'
                                   : 'border-slate-200 hover:border-purple-200 hover:bg-slate-50'
-                              }`}
+                                }`}
                             >
                               <Icon className={`w-6 h-6 ${info.color} mb-2`} />
                               <p className="text-sm font-medium text-slate-900">{info.name}</p>
@@ -318,31 +317,31 @@ const TherapistDemo: React.FC = () => {
                       <TabsTrigger value="gaze">Olhar</TabsTrigger>
                       <TabsTrigger value="head">Cabeça</TabsTrigger>
                     </TabsList>
-                    
+
                     <TabsContent value="comfort" className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={telemetry}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="timestamp" 
+                          <XAxis
+                            dataKey="timestamp"
                             tickFormatter={(ts) => new Date(ts).toLocaleTimeString('pt-BR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           />
                           <YAxis domain={[0, 100]} />
-                          <Tooltip 
+                          <Tooltip
                             labelFormatter={(ts) => new Date(ts).toLocaleTimeString('pt-BR')}
                             formatter={(value: number) => [`${value.toFixed(1)}%`, 'Nível de Conforto']}
                           />
-                          <Line 
-                            type="monotone" 
-                            dataKey="comfortLevel" 
-                            stroke="#10B981" 
+                          <Line
+                            type="monotone"
+                            dataKey="comfortLevel"
+                            stroke="#10B981"
                             strokeWidth={2}
                             dot={false}
                           />
                         </LineChart>
                       </ResponsiveContainer>
                     </TabsContent>
-                    
+
                     <TabsContent value="gaze" className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={telemetry}>
@@ -355,7 +354,7 @@ const TherapistDemo: React.FC = () => {
                         </LineChart>
                       </ResponsiveContainer>
                     </TabsContent>
-                    
+
                     <TabsContent value="head" className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={telemetry}>
@@ -369,7 +368,7 @@ const TherapistDemo: React.FC = () => {
                       </ResponsiveContainer>
                     </TabsContent>
                   </Tabs>
-                  
+
                   <div className="mt-4 flex items-center justify-between text-sm text-slate-500">
                     <span>Última sincronização: {lastSync.toLocaleTimeString('pt-BR')}</span>
                     <span className="flex items-center gap-1">
@@ -397,7 +396,7 @@ const TherapistDemo: React.FC = () => {
                   <div className="p-4 bg-slate-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-slate-700">Status do Paciente</span>
-                      <Badge 
+                      <Badge
                         variant={patientStatus === 'connected' ? 'default' : patientStatus === 'waiting' ? 'secondary' : 'outline'}
                         className={patientStatus === 'connected' ? 'bg-emerald-500' : ''}
                       >
@@ -434,8 +433,8 @@ const TherapistDemo: React.FC = () => {
                         </div>
                       </div>
 
-                      <Button 
-                        className="w-full" 
+                      <Button
+                        className="w-full"
                         variant="outline"
                         onClick={() => window.open(patientLink, '_blank')}
                       >
@@ -467,9 +466,8 @@ const TherapistDemo: React.FC = () => {
                       comfortEvents.map((event) => (
                         <div
                           key={event.id}
-                          className={`p-3 rounded-lg flex items-center gap-3 ${
-                            event.type === 'comfortable' ? 'bg-emerald-50' : 'bg-rose-50'
-                          }`}
+                          className={`p-3 rounded-lg flex items-center gap-3 ${event.type === 'comfortable' ? 'bg-emerald-50' : 'bg-rose-50'
+                            }`}
                         >
                           {event.type === 'comfortable' ? (
                             <CheckCircle className="w-5 h-5 text-emerald-500" />

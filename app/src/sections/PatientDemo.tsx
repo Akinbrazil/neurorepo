@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Headset, 
+import {
+  Headset,
   CheckCircle,
   AlertTriangle,
   Info,
@@ -17,11 +17,11 @@ import {
 } from 'lucide-react';
 import VREnvironments from './VREnvironments';
 
-type ClinicalEnvironment = 'breathing-temple' | 'sunrise-meadow' | 'sensory-void';
+type ClinicalEnvironment = 'forest' | 'beach' | 'classroom';
 
 const PatientDemo: React.FC = () => {
   const [isVRActive, setIsVRActive] = useState(false);
-  const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('breathing-temple');
+  const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('forest');
   const [intensity, setIntensity] = useState<1 | 2 | 3>(2);
   const [isConnected, setIsConnected] = useState(true);
   const [showInstructions, setShowInstructions] = useState(true);
@@ -31,8 +31,8 @@ const PatientDemo: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const env = params.get('env') as ClinicalEnvironment;
     const int = params.get('intensity');
-    
-    if (env && ['breathing-temple', 'sunrise-meadow', 'sensory-void'].includes(env)) {
+
+    if (env && ['forest', 'beach', 'classroom'].includes(env)) {
       setCurrentEnvironment(env);
     }
     if (int) {
@@ -51,29 +51,29 @@ const PatientDemo: React.FC = () => {
   // Get environment info
   const getEnvironmentInfo = (env: ClinicalEnvironment) => {
     switch (env) {
-      case 'breathing-temple':
-        return { 
-          name: 'Templo da Respiração', 
-          description: 'Ambiente para ansiedade com respiração guiada',
-          icon: Wind, 
-          color: 'from-cyan-500 to-teal-600',
-          textColor: 'text-cyan-600'
+      case 'forest':
+        return {
+          name: 'Floresta de Relaxamento',
+          description: 'Ambiente para relaxamento profundo',
+          icon: Wind,
+          color: 'from-emerald-500 to-teal-600',
+          textColor: 'text-emerald-600'
         };
-      case 'sunrise-meadow':
-        return { 
-          name: 'Prado do Amanhecer', 
-          description: 'Ambiente energizante para depressão',
-          icon: Sun, 
-          color: 'from-amber-400 to-orange-500',
-          textColor: 'text-amber-600'
+      case 'beach':
+        return {
+          name: 'Praia de Mindfulness',
+          description: 'Foco no presente e serenidade',
+          icon: Sun,
+          color: 'from-blue-400 to-indigo-500',
+          textColor: 'text-blue-600'
         };
-      case 'sensory-void':
-        return { 
-          name: 'Vazio Sensorial', 
-          description: 'Ambiente minimalista para burnout',
-          icon: Sparkles, 
-          color: 'from-violet-500 to-purple-600',
-          textColor: 'text-violet-600'
+      case 'classroom':
+        return {
+          name: 'Escola Social',
+          description: 'Treino de interação e segurança',
+          icon: Sparkles,
+          color: 'from-slate-500 to-slate-700',
+          textColor: 'text-slate-600'
         };
     }
   };
@@ -114,7 +114,7 @@ const PatientDemo: React.FC = () => {
           onEnvironmentChange={handleEnvironmentChange}
           onComfortCheck={handleComfortCheck}
         />
-        
+
         {/* Exit VR Button */}
         <div className="absolute top-4 right-4 z-50">
           <Button
@@ -144,7 +144,7 @@ const PatientDemo: React.FC = () => {
                 <p className="text-xs text-white/60">Modo Demonstração - Paciente</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {isConnected ? (
                 <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
@@ -170,14 +170,14 @@ const PatientDemo: React.FC = () => {
               <div className={`w-20 h-20 bg-gradient-to-br ${envInfo.color} rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl`}>
                 <EnvIcon className="w-10 h-10 text-white" />
               </div>
-              
+
               <h2 className="text-3xl font-bold text-white mb-2">
                 {envInfo.name}
               </h2>
               <p className="text-white/70 text-lg mb-6">
                 {envInfo.description}
               </p>
-              
+
               <div className="flex items-center justify-center gap-4 mb-8">
                 <Badge variant="outline" className="border-white/30 text-white/80">
                   Intensidade: {intensity}/3
@@ -187,8 +187,8 @@ const PatientDemo: React.FC = () => {
                 </Badge>
               </div>
 
-              <Button 
-                onClick={startVR} 
+              <Button
+                onClick={startVR}
                 size="lg"
                 className={`bg-gradient-to-r ${envInfo.color} text-white shadow-xl hover:shadow-2xl transition-shadow px-8 py-6 text-lg`}
               >
@@ -263,18 +263,17 @@ const PatientDemo: React.FC = () => {
               Ambientes Disponíveis
             </h3>
             <div className="grid grid-cols-3 gap-4">
-              {(['breathing-temple', 'sunrise-meadow', 'sensory-void'] as ClinicalEnvironment[]).map((env) => {
+              {(['forest', 'beach', 'classroom'] as ClinicalEnvironment[]).map((env) => {
                 const info = getEnvironmentInfo(env);
                 const Icon = info.icon;
                 const isActive = env === currentEnvironment;
                 return (
                   <div
                     key={env}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      isActive
+                    className={`p-4 rounded-xl border-2 transition-all ${isActive
                         ? `border-purple-500 bg-purple-500/20`
                         : 'border-white/10 bg-white/5'
-                    }`}
+                      }`}
                   >
                     <Icon className={`w-8 h-8 ${info.textColor} mb-2`} />
                     <p className="text-sm font-medium text-white">{info.name}</p>

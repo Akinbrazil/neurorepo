@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Mic, 
-  MicOff, 
-  Volume2, 
+import {
+  Mic,
+  MicOff,
+  Volume2,
   VolumeX,
-  Play, 
-  Square, 
+  Play,
+  Square,
   ArrowLeft,
   Heart,
   Activity,
@@ -25,6 +25,7 @@ import {
   Radio,
   Monitor
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import type { PatientWithDASS21 } from '@/types';
 
 interface SessionControlProps {
@@ -47,30 +48,30 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [sessionTime, setSessionTime] = useState(0);
   const [intensity, setIntensity] = useState<1 | 2 | 3>(1);
-  const [environment, setEnvironment] = useState<'floresta' | 'sala-aula'>('floresta');
-  
+  const [environment, setEnvironment] = useState<'forest' | 'beach' | 'classroom'>('forest');
+
   // Voice/Audio state
   const [isMicOn, setIsMicOn] = useState(false);
   const [micVolume, setMicVolume] = useState(80);
   const [natureVolume, setNatureVolume] = useState(60);
-  
+
   // Comfort check state - Telemetry Monitor
   const [comfortStatus, setComfortStatus] = useState<'comfortable' | 'neutral' | 'uncomfortable'>('neutral');
   const [comfortChecks, setComfortChecks] = useState(0);
   const [lastComfortCheck, setLastComfortCheck] = useState<Date | null>(null);
-  const [comfortHistory, setComfortHistory] = useState<Array<{time: string; status: string}>>([]);
-  
+  const [comfortHistory, setComfortHistory] = useState<Array<{ time: string; status: string }>>([]);
+
   // Telemetry data
   const [gazeX, setGazeX] = useState(0);
   const [gazeY, setGazeY] = useState(0);
   const [headMovement, setHeadMovement] = useState(0);
-  
+
   // Connection state
   const [patientConnected, setPatientConnected] = useState(false);
-  
+
   // WebRTC refs
   const localStreamRef = useRef<MediaStream | null>(null);
-  
+
   // Timer ref
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -92,12 +93,39 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
     };
   }, [isSessionActive]);
 
-  // Simulate telemetry data when session is active
+  // Real-time telemetry listener
+  useEffect(() => {
+    if (!isSessionActive || !patient.id) return;
+
+    const sessionId = `session-${patient.id}`;
+    const channel = supabase.channel(`session:${sessionId}`);
+
+    channel
+      .on('broadcast', { event: 'telemetry' }, ({ payload }) => {
+        setGazeX(payload.gazeX);
+        setGazeY(payload.gazeY);
+        setComfortStatus(payload.comfortStatus);
+
+        if (payload.comfortStatus !== 'neutral') {
+          setComfortChecks(c => c + 1);
+          setLastComfortCheck(new Date());
+          setComfortHistory(h => [...h.slice(-10), {
+            time: new Date().toLocaleTimeString('pt-BR'),
+            status: payload.comfortStatus
+          }]);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isSessionActive, patient.id]);
+
+  // Simulate head movement based on gaze activity for UI feedback
   useEffect(() => {
     if (isSessionActive && patientConnected) {
       const telemetryInterval = setInterval(() => {
-        setGazeX(prev => prev + (Math.random() - 0.5) * 10);
-        setGazeY(prev => prev + (Math.random() - 0.5) * 10);
         setHeadMovement(() => Math.abs(Math.sin(Date.now() / 1000) * 100));
       }, 500);
       return () => clearInterval(telemetryInterval);
@@ -148,6 +176,16 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
       }
       setIsMicOn(false);
     }
+
+    // Broadcast mic status
+    if (patient.id) {
+      const sessionId = `session-${patient.id}`;
+      supabase.channel(`session:${sessionId}`).send({
+        type: 'broadcast',
+        event: 'mic-status',
+        payload: { isMicOn: !isMicOn }
+      });
+    }
   };
 
   // Simulate comfort check from patient
@@ -156,9 +194,9 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
     setComfortChecks(count => count + 1);
     const now = new Date();
     setLastComfortCheck(now);
-    setComfortHistory(history => [...history, { 
-      time: now.toLocaleTimeString('pt-BR'), 
-      status 
+    setComfortHistory(history => [...history, {
+      time: now.toLocaleTimeString('pt-BR'),
+      status
     }]);
   };
 
@@ -319,7 +357,7 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
               </CardHeader>
               <CardContent>
                 {!isSessionActive ? (
-                  <Button 
+                  <Button
                     className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
                     size="lg"
                     onClick={handleStartSession}
@@ -328,7 +366,7 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                     Iniciar Sessão
                   </Button>
                 ) : (
-                  <Button 
+                  <Button
                     className="w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700"
                     size="lg"
                     onClick={handleEndSession}
@@ -359,31 +397,41 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                   <label className="text-sm font-medium text-slate-700 mb-3 block">
                     Ambiente
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <button
-                      onClick={() => setEnvironment('floresta')}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        environment === 'floresta'
-                          ? 'border-teal-500 bg-teal-50'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
+                      onClick={() => setEnvironment('forest')}
+                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'forest'
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                        }`}
                     >
-                      <Trees className={`w-8 h-8 mx-auto mb-2 ${environment === 'floresta' ? 'text-teal-600' : 'text-slate-400'}`} />
-                      <p className={`font-medium ${environment === 'floresta' ? 'text-teal-700' : 'text-slate-600'}`}>
-                        Floresta Calma
+                      <Trees className={`w-8 h-8 mx-auto mb-2 ${environment === 'forest' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                      <p className={`text-xs font-medium ${environment === 'forest' ? 'text-emerald-700' : 'text-slate-600'}`}>
+                        Floresta
                       </p>
                     </button>
                     <button
-                      onClick={() => setEnvironment('sala-aula')}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        environment === 'sala-aula'
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
+                      onClick={() => setEnvironment('beach')}
+                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'beach'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                        }`}
                     >
-                      <GraduationCap className={`w-8 h-8 mx-auto mb-2 ${environment === 'sala-aula' ? 'text-blue-600' : 'text-slate-400'}`} />
-                      <p className={`font-medium ${environment === 'sala-aula' ? 'text-blue-700' : 'text-slate-600'}`}>
-                        Sala de Aula Virtual
+                      <Volume2 className={`w-8 h-8 mx-auto mb-2 ${environment === 'beach' ? 'text-blue-600' : 'text-slate-400'}`} />
+                      <p className={`text-xs font-medium ${environment === 'beach' ? 'text-blue-700' : 'text-slate-600'}`}>
+                        Praia
+                      </p>
+                    </button>
+                    <button
+                      onClick={() => setEnvironment('classroom')}
+                      className={`p-4 rounded-xl border-2 transition-all ${environment === 'classroom'
+                        ? 'border-slate-500 bg-slate-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                    >
+                      <GraduationCap className={`w-8 h-8 mx-auto mb-2 ${environment === 'classroom' ? 'text-slate-600' : 'text-slate-400'}`} />
+                      <p className={`text-xs font-medium ${environment === 'classroom' ? 'text-slate-700' : 'text-slate-600'}`}>
+                        Escola
                       </p>
                     </button>
                   </div>
@@ -395,7 +443,7 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                     <label className="text-sm font-medium text-slate-700">
                       Nível de Intensidade
                     </label>
-                    <Badge 
+                    <Badge
                       variant={intensity === 1 ? 'default' : intensity === 2 ? 'secondary' : 'destructive'}
                       className={intensity === 1 ? 'bg-emerald-100 text-emerald-700' : intensity === 2 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}
                     >
@@ -457,21 +505,27 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`aspect-video rounded-xl flex items-center justify-center ${
-                  environment === 'floresta' 
-                    ? 'bg-gradient-to-br from-emerald-800 to-teal-900' 
-                    : 'bg-gradient-to-br from-blue-600 to-indigo-800'
-                }`}>
+                <div className={`aspect-video rounded-xl flex items-center justify-center ${environment === 'forest'
+                  ? 'bg-gradient-to-br from-emerald-800 to-teal-900'
+                  : environment === 'beach'
+                    ? 'bg-gradient-to-br from-blue-400 to-indigo-600'
+                    : 'bg-gradient-to-br from-slate-600 to-slate-800'
+                  }`}>
                   <div className="text-center text-white">
-                    {environment === 'floresta' ? (
+                    {environment === 'forest' ? (
                       <>
                         <Trees className="w-16 h-16 mx-auto mb-2 opacity-80" />
                         <p className="font-medium">Floresta Serena</p>
                       </>
+                    ) : environment === 'beach' ? (
+                      <>
+                        <Volume2 className="w-16 h-16 mx-auto mb-2 opacity-80" />
+                        <p className="font-medium">Praia Mindfulness</p>
+                      </>
                     ) : (
                       <>
                         <GraduationCap className="w-16 h-16 mx-auto mb-2 opacity-80" />
-                        <p className="font-medium">Sala de Aula Virtual</p>
+                        <p className="font-medium">Sala Social</p>
                       </>
                     )}
                     <p className="text-sm opacity-60 mt-1">Intensidade: {intensity}/3</p>
@@ -503,9 +557,8 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                 {/* Mic Toggle */}
                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      isMicOn ? 'bg-rose-100' : 'bg-slate-200'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isMicOn ? 'bg-rose-100' : 'bg-slate-200'
+                      }`}>
                       {isMicOn ? (
                         <Mic className="w-6 h-6 text-rose-600" />
                       ) : (
@@ -565,7 +618,7 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                     </span>
                   </div>
                   <p className="text-sm text-slate-500">
-                    {isMicOn 
+                    {isMicOn
                       ? 'Conexão ativa. O paciente pode ouvir sua voz. Os sons do ambiente serão reduzidos automaticamente.'
                       : 'Microfone desligado. Ative para comunicação com o paciente.'}
                   </p>
@@ -628,7 +681,7 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                   <p className="text-xs text-slate-500 mb-1">Movimentação da Cabeça</p>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-blue-500 rounded-full transition-all"
                         style={{ width: `${Math.min(headMovement, 100)}%` }}
                       />
@@ -645,16 +698,16 @@ const SessionControl: React.FC<SessionControlProps> = ({ patient: propPatient })
                       {comfortHistory.slice(-5).map((item, idx) => (
                         <div key={idx} className="flex items-center gap-2 text-xs">
                           <span className="text-slate-400">{item.time}</span>
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={
                               item.status === 'comfortable' ? 'border-emerald-300 text-emerald-700' :
-                              item.status === 'uncomfortable' ? 'border-rose-300 text-rose-700' :
-                              'border-slate-300 text-slate-600'
+                                item.status === 'uncomfortable' ? 'border-rose-300 text-rose-700' :
+                                  'border-slate-300 text-slate-600'
                             }
                           >
                             {item.status === 'comfortable' ? 'Confortável' :
-                             item.status === 'uncomfortable' ? 'Desconfortável' : 'Neutro'}
+                              item.status === 'uncomfortable' ? 'Desconfortável' : 'Neutro'}
                           </Badge>
                         </div>
                       ))}

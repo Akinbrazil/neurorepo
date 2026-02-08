@@ -16,12 +16,24 @@ import './App.css';
 
 // Main App Content Component
 const AppContent: React.FC = () => {
-  const { currentView, isLoading } = useAuth();
+  const { currentView, setCurrentView, isLoading } = useAuth();
+
+  // Handle URL routing for demo views
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+
+    if (view === 'patient-demo') {
+      setCurrentView('patient-demo');
+    } else if (view === 'therapist-demo') {
+      setCurrentView('therapist-demo');
+    }
+  }, [setCurrentView]);
 
   // Load A-Frame script for VR scenes
   useEffect(() => {
     // @ts-ignore
-    if (currentView === 'vr-environment' && !window.AFRAME) {
+    if ((currentView === 'vr-environment' || currentView === 'patient-demo' || currentView === 'vr-environments') && !window.AFRAME) {
       const script = document.createElement('script');
       script.src = 'https://aframe.io/releases/1.4.2/aframe.min.js';
       script.async = true;
@@ -44,34 +56,34 @@ const AppContent: React.FC = () => {
   switch (currentView) {
     case 'landing':
       return <LandingPage />;
-    
+
     case 'login':
       return <LoginPage />;
-    
+
     case 'dashboard':
       return <Dashboard />;
-    
+
     case 'session-control':
       return <SessionControl />;
-    
+
     case 'vr-environment':
       return <VREnvironment />;
-    
+
     case 'patient-register':
       return <PatientRegister />;
-    
+
     case 'dass21-form':
       return <DASS21Form />;
-    
+
     case 'therapist-demo':
       return <TherapistDemo />;
-    
+
     case 'patient-demo':
       return <PatientDemo />;
-    
+
     case 'vr-environments':
       return <VREnvironments />;
-    
+
     default:
       return <LandingPage />;
   }

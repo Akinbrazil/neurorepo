@@ -2,10 +2,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Volume2, 
-  VolumeX, 
-  Maximize2, 
+import {
+  Volume2,
+  VolumeX,
+  Maximize2,
   Minimize2,
   Info,
   AlertTriangle,
@@ -20,7 +20,9 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-type ClinicalEnvironment = 'breathing-temple' | 'sunrise-meadow' | 'sensory-void';
+import { supabase } from '@/lib/supabase';
+
+type ClinicalEnvironment = 'forest' | 'beach' | 'classroom';
 
 interface VREnvironmentsProps {
   sessionId?: string;
@@ -47,11 +49,11 @@ const BreathingGuide: React.FC<{ isActive: boolean }> = ({ isActive }) => {
         setProgress(i);
         await new Promise(r => setTimeout(r, 40));
       }
-      
+
       // Hold: 2 seconds
       setPhase('hold');
       await new Promise(r => setTimeout(r, 2000));
-      
+
       // Exhale: 6 seconds
       setPhase('exhale');
       for (let i = 100; i >= 0; i -= 1.5) {
@@ -74,16 +76,16 @@ const BreathingGuide: React.FC<{ isActive: boolean }> = ({ isActive }) => {
     <div className="absolute top-1/4 left-1/2 -translate-x-1/2 pointer-events-none z-20">
       <div className="relative flex flex-col items-center">
         {/* Breathing Sphere */}
-        <div 
+        <div
           className="w-32 h-32 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 shadow-2xl transition-transform duration-100 flex items-center justify-center"
-          style={{ 
+          style={{
             transform: `scale(${scale})`,
             boxShadow: `0 0 ${40 + progress * 0.6}px rgba(45, 212, 191, ${0.3 + progress * 0.005})`
           }}
         >
           <Wind className="w-12 h-12 text-white/80" />
         </div>
-        
+
         {/* Phase Text */}
         <div className="mt-6 text-center">
           <p className="text-2xl font-bold text-white drop-shadow-lg">
@@ -129,8 +131,8 @@ const BreathingGuide: React.FC<{ isActive: boolean }> = ({ isActive }) => {
 const VREnvironments: React.FC<VREnvironmentsProps> = ({
   sessionId,
   patientId,
-  initialEnvironment = 'breathing-temple',
-  initialIntensity = 2,
+  initialEnvironment = 'forest',
+  initialIntensity = 1,
   onEnvironmentChange,
   onComfortCheck,
 }) => {
@@ -140,17 +142,18 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
   const [isMicActive, setIsMicActive] = useState(false);
   const [natureVolume, setNatureVolume] = useState(0.6);
   const [isAudioDucked, setIsAudioDucked] = useState(false);
-  
+
   // Comfort check state
   const [isGazing, setIsGazing] = useState(false);
   const [gazeProgress, setGazeProgress] = useState(0);
   const [comfortStatus, setComfortStatus] = useState<'comfortable' | 'neutral' | 'uncomfortable'>('neutral');
+  const [isTherapistSpeaking, setIsTherapistSpeaking] = useState(false);
   const [showComfortFeedback, setShowComfortFeedback] = useState(false);
-  
+
   // Retícula (cursor) position
   const [reticleX, setReticleX] = useState(50);
   const [reticleY, setReticleY] = useState(50);
-  
+
   // Connection state
   const [isConnected] = useState(true);
   const [therapistName] = useState('Dra. Maria Silva');
@@ -168,14 +171,14 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
   }, [onEnvironmentChange]);
 
   const nextEnvironment = useCallback(() => {
-    const envs: ClinicalEnvironment[] = ['breathing-temple', 'sunrise-meadow', 'sensory-void'];
+    const envs: ClinicalEnvironment[] = ['forest', 'beach', 'classroom'];
     const currentIndex = envs.indexOf(currentEnvironment);
     const nextIndex = (currentIndex + 1) % envs.length;
     switchEnvironment(envs[nextIndex]);
   }, [currentEnvironment, switchEnvironment]);
 
   const prevEnvironment = useCallback(() => {
-    const envs: ClinicalEnvironment[] = ['breathing-temple', 'sunrise-meadow', 'sensory-void'];
+    const envs: ClinicalEnvironment[] = ['forest', 'beach', 'classroom'];
     const currentIndex = envs.indexOf(currentEnvironment);
     const prevIndex = (currentIndex - 1 + envs.length) % envs.length;
     switchEnvironment(envs[prevIndex]);
@@ -186,10 +189,10 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     const handleDeviceOrientation = (event: DeviceOrientationEvent) => {
       const gamma = event.gamma || 0;
       const beta = event.beta || 0;
-      
+
       const x = Math.max(10, Math.min(90, 50 + (gamma / 45) * 40));
       const y = Math.max(10, Math.min(90, 50 + (beta / 45) * 40));
-      
+
       setReticleX(x);
       setReticleY(y);
     };
@@ -215,12 +218,42 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     };
   }, []);
 
+  // Broadcast gaze and comfort data to Supabase
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const channel = supabase.channel(`session:${sessionId}`);
+
+    channel.on('broadcast', { event: 'mic-status' }, ({ payload }) => {
+      setIsTherapistSpeaking(payload.isMicOn);
+    }).subscribe();
+
+    // Broadcast every 200ms
+    const broadcastInterval = setInterval(() => {
+      channel.send({
+        type: 'broadcast',
+        event: 'telemetry',
+        payload: {
+          gazeX: reticleX,
+          gazeY: reticleY,
+          comfortStatus,
+          timestamp: new Date().toISOString()
+        }
+      });
+    }, 200);
+
+    return () => {
+      clearInterval(broadcastInterval);
+      supabase.removeChannel(channel);
+    };
+  }, [sessionId, reticleX, reticleY, comfortStatus]);
+
   // Check if retícula is over comfort icon
   useEffect(() => {
     const distance = Math.sqrt(
       Math.pow(reticleX - 50, 2) + Math.pow(reticleY - 50, 2)
     );
-    
+
     if (distance < 15 && !isGazing) {
       handleGazeStart();
     } else if (distance >= 15 && isGazing) {
@@ -231,16 +264,16 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
   // Handle gaze on comfort icon
   const handleGazeStart = () => {
     if (isGazing) return;
-    
+
     setIsGazing(true);
     gazeStartTimeRef.current = Date.now();
-    
+
     gazeTimerRef.current = setInterval(() => {
       if (gazeStartTimeRef.current) {
         const elapsed = Date.now() - gazeStartTimeRef.current;
         const progress = Math.min((elapsed / 2000) * 100, 100);
         setGazeProgress(progress);
-        
+
         if (elapsed >= 2000) {
           handleComfortCheck();
         }
@@ -252,7 +285,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     setIsGazing(false);
     setGazeProgress(0);
     gazeStartTimeRef.current = null;
-    
+
     if (gazeTimerRef.current) {
       clearInterval(gazeTimerRef.current);
       gazeTimerRef.current = null;
@@ -263,10 +296,10 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     setComfortStatus('comfortable');
     setShowComfortFeedback(true);
     onComfortCheck?.('comfortable');
-    
+
     // Send to Supabase in real implementation
     console.log('Comfort check triggered:', { sessionId, patientId, timestamp: new Date().toISOString() });
-    
+
     setTimeout(() => {
       setShowComfortFeedback(false);
       handleGazeEnd();
@@ -322,12 +355,12 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     `;
 
     switch (currentEnvironment) {
-      case 'breathing-temple':
-        return getBreathingTempleHTML() + baseScene;
-      case 'sunrise-meadow':
-        return getSunriseMeadowHTML() + baseScene;
-      case 'sensory-void':
-        return getSensoryVoidHTML() + baseScene;
+      case 'forest':
+        return getForestHTML() + baseScene;
+      case 'beach':
+        return getBeachHTML() + baseScene;
+      case 'classroom':
+        return getClassroomHTML() + baseScene;
       default:
         return baseScene;
     }
@@ -335,197 +368,75 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
 
   const getSkyColor = () => {
     switch (currentEnvironment) {
-      case 'breathing-temple':
-        return intensity === 1 ? '#0F4C5C' : intensity === 2 ? '#0A3A47' : '#052830';
-      case 'sunrise-meadow':
-        return intensity === 1 ? '#FFE4B5' : intensity === 2 ? '#FFD700' : '#FFA500';
-      case 'sensory-void':
-        return '#0A0A0F';
+      case 'forest':
+        return intensity === 1 ? '#87CEEB' : intensity === 2 ? '#5DADE2' : '#2E86AB';
+      case 'beach':
+        return intensity === 1 ? '#F0F9FF' : intensity === 2 ? '#BAE6FD' : '#7DD3FC';
+      case 'classroom':
+        return '#F1F5F9';
       default:
         return '#87CEEB';
     }
   };
 
-  // Environment 1: Guided Breathing Temple (Anxiety)
-  const getBreathingTempleHTML = () => {
+  // Environment 1: Relaxation Forest
+  const getForestHTML = () => {
     return `
-      <!-- Ground - Reflective water surface -->
-      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" 
-        color="#1A3A4A" 
-        material="metalness: 0.8; roughness: 0.2; opacity: 0.9; transparent: true">
-      </a-plane>
-      
-      <!-- Temple Pillars -->
-      ${Array.from({ length: 8 }).map((_, i) => {
-        const angle = (i / 8) * Math.PI * 2;
-        const x = Math.cos(angle) * 8;
-        const z = Math.sin(angle) * 8 - 10;
-        return `
-          <a-cylinder position="${x} 4 ${z}" radius="0.6" height="8" 
-            color="#2D5A6B" material="metalness: 0.3; roughness: 0.7"></a-cylinder>
-          <a-cylinder position="${x} 8.5 ${z}" radius="0.8" height="1" 
-            color="#3D7A8B" material="metalness: 0.4; roughness: 0.6"></a-cylinder>
-        `;
-      }).join('')}
-      
-      <!-- Central Breathing Sphere (Animated via CSS) -->
-      <a-sphere id="breathing-sphere" position="0 3 -10" radius="1.5" 
-        color="#2DD4BF" 
-        material="emissive: #0D9488; emissiveIntensity: 0.5; opacity: 0.8; transparent: true"
-        animation="property: scale; dir: alternate; dur: 4000; to: 1.5 1.5 1.5; loop: true; easing: easeInOutSine">
-      </a-sphere>
-      
-      <!-- Floating Particles -->
-      ${Array.from({ length: intensity * 8 }).map(() => `
-        <a-sphere position="${(Math.random() - 0.5) * 30} ${2 + Math.random() * 6} ${-5 - Math.random() * 20}" 
-          radius="${0.05 + Math.random() * 0.1}" 
-          color="#5EEAD4"
-          material="emissive: #5EEAD4; emissiveIntensity: 0.8; opacity: 0.6; transparent: true"
-          animation="property: position; to: ${(Math.random() - 0.5) * 30} ${4 + Math.random() * 4} ${-5 - Math.random() * 20}; dur: ${8000 + Math.random() * 4000}; loop: true; dir: alternate; easing: easeInOutSine">
-        </a-sphere>
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="${intensity === 1 ? '#90EE90' : '#7CB342'}"></a-plane>
+      ${Array.from({ length: intensity * 10 }).map(() => `
+        <a-cone position="${(Math.random() - 0.5) * 40} 2 ${(Math.random() - 0.5) * 40 - 10}" radius-bottom="1.5" radius-top="0" height="4" color="hsl(${120 + Math.random() * 20}, 60%, 40%)"></a-cone>
+        <a-cylinder position="${(Math.random() - 0.5) * 40} 1 ${(Math.random() - 0.5) * 40 - 10}" radius="0.3" height="2" color="#8D6E63"></a-cylinder>
       `).join('')}
-      
-      <!-- Soft Glow Lights -->
-      <a-light type="point" color="#2DD4BF" intensity="0.8" position="0 5 -10" distance="20"></a-light>
-      <a-light type="point" color="#0891B2" intensity="0.4" position="-5 3 -8" distance="15"></a-light>
-      <a-light type="point" color="#0891B2" intensity="0.4" position="5 3 -8" distance="15"></a-light>
     `;
   };
 
-  // Environment 2: Sunrise Meadow (Depression)
-  const getSunriseMeadowHTML = () => {
+  // Environment 2: Mindfulness Beach
+  const getBeachHTML = () => {
     return `
-      <!-- Ground - Lush grass -->
-      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" 
-        color="#7CB342" 
-        material="roughness: 0.9">
-      </a-plane>
-      
-      <!-- Hills -->
-      <a-sphere position="-20 0 -30" radius="25" 
-        color="#8BC34A" 
-        material="roughness: 1"
-        scale="1 0.3 1">
-      </a-sphere>
-      <a-sphere position="25 0 -35" radius="30" 
-        color="#9CCC65" 
-        material="roughness: 1"
-        scale="1 0.25 1">
-      </a-sphere>
-      
-      <!-- Bright Flowers -->
-      ${Array.from({ length: intensity * 12 }).map(() => `
-        <a-entity position="${(Math.random() - 0.5) * 50} 0.3 ${(Math.random() - 0.5) * 40 - 10}">
-          <a-cylinder radius="0.02" height="0.5" color="#4A6741"></a-cylinder>
-          <a-sphere position="0 0.3 0" radius="0.15" 
-            color="hsl(${30 + Math.random() * 50}, 90%, 60%)"
-            material="emissive: hsl(${30 + Math.random() * 50}, 70%, 30%); emissiveIntensity: 0.3">
-          </a-sphere>
-        </a-entity>
-      `).join('')}
-      
-      <!-- Butterflies -->
-      ${Array.from({ length: intensity * 4 }).map((_, i) => `
-        <a-entity position="${(Math.random() - 0.5) * 30} ${2 + Math.random() * 3} ${-5 - Math.random() * 20}"
-          animation="property: position; to: ${(Math.random() - 0.5) * 30} ${3 + Math.random() * 2} ${-5 - Math.random() * 20}; dur: ${6000 + i * 1000}; loop: true; dir: alternate; easing: easeInOutSine">
-          <a-plane width="0.3" height="0.2" color="#FF9800" 
-            animation="property: rotation; to: 0 30 0; dur: 200; loop: true; dir: alternate"></a-plane>
-          <a-plane width="0.3" height="0.2" color="#FF9800" position="-0.3 0 0" rotation="0 180 0"
-            animation="property: rotation; to: 0 150 0; dur: 200; loop: true; dir: alternate"></a-plane>
-        </a-entity>
-      `).join('')}
-      
+      <!-- Sand -->
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#F3E5AB"></a-plane>
+      <!-- Water -->
+      <a-plane position="0 0.1 -20" rotation="-90 0 0" width="100" height="40" color="#0077be" material="opacity: 0.6; transparent: true"></a-plane>
       <!-- Sun -->
-      <a-sphere position="0 15 -50" radius="8" 
-        color="#FFD700"
-        material="emissive: #FFD700; emissiveIntensity: 1; shader: flat">
-      </a-sphere>
-      
-      <!-- Sun rays -->
-      <a-light type="directional" color="#FFF8DC" intensity="1.2" position="0 15 -50"></a-light>
-      <a-light type="hemisphere" color="#87CEEB" groundColor="#7CB342" intensity="0.6"></a-light>
+      <a-sphere position="0 10 -40" radius="5" color="#FFD700" material="shader: flat"></a-sphere>
     `;
   };
 
-  // Environment 3: Sensory Neutral Void (Burnout)
-  const getSensoryVoidHTML = () => {
+  // Environment 3: Social Exposure Classroom
+  const getClassroomHTML = () => {
     return `
-      <!-- Floating Platform -->
-      <a-circle position="0 0 -5" radius="5" rotation="-90 0 0"
-        color="#1A1A2E"
-        material="metalness: 0.5; roughness: 0.5; opacity: 0.7; transparent: true">
-      </a-circle>
-      
-      <!-- Starfield -->
-      ${Array.from({ length: intensity * 20 }).map(() => `
-        <a-sphere position="${(Math.random() - 0.5) * 100} ${Math.random() * 50 - 10} ${-20 - Math.random() * 80}" 
-          radius="${0.02 + Math.random() * 0.08}" 
-          color="#FFFFFF"
-          material="emissive: #FFFFFF; emissiveIntensity: ${0.5 + Math.random() * 0.5}; shader: flat"
-          animation="property: material.emissiveIntensity; to: 0.2; dur: ${2000 + Math.random() * 3000}; loop: true; dir: alternate">
-        </a-sphere>
+      <a-plane position="0 0.01 -10" rotation="-90 0 0" width="30" height="30" color="#E2E8F0"></a-plane>
+      <a-plane position="0 5 -25" width="30" height="10" color="#F1F5F9"></a-plane>
+      <a-plane position="0 4 -24.8" width="12" height="6" color="#1E293B"></a-plane>
+      ${Array.from({ length: intensity * 4 }).map(() => `
+        <a-box position="${(Math.random() - 0.5) * 15} 1 ${-10 - Math.random() * 8}" width="2" height="1" depth="1" color="#CBD5E1"></a-box>
       `).join('')}
-      
-      <!-- Floating Lotus Flowers -->
-      ${Array.from({ length: intensity * 3 }).map((_, i) => {
-        const x = (Math.random() - 0.5) * 20;
-        const z = -10 - Math.random() * 20;
-        const y = 1 + Math.random() * 2;
-        return `
-          <a-entity position="${x} ${y} ${z}"
-            animation="property: position; to: ${x} ${y + 0.5} ${z}; dur: ${5000 + i * 1000}; loop: true; dir: alternate; easing: easeInOutSine"
-            animation__rotate="property: rotation; to: 0 360 0; dur: ${20000 + i * 5000}; loop: true; easing: linear">
-            <!-- Lotus petals -->
-            ${Array.from({ length: 6 }).map((_, j) => {
-              const angle = (j / 6) * Math.PI * 2;
-              const px = Math.cos(angle) * 0.3;
-              const pz = Math.sin(angle) * 0.3;
-              return `
-                <a-cone position="${px} 0 ${pz}" radius-bottom="0.15" radius-top="0" height="0.5"
-                  rotation="30 ${(j / 6) * 360} 0"
-                  color="#E8D5F2"
-                  material="emissive: #D4A5E8; emissiveIntensity: 0.2; opacity: 0.8; transparent: true">
-                </a-cone>
-              `;
-            }).join('')}
-            <a-sphere radius="0.1" color="#F0E6FA" material="emissive: #E8D5F2; emissiveIntensity: 0.3"></a-sphere>
-          </a-entity>
-        `;
-      }).join('')}
-      
-      <!-- Nebula effect (soft colored lights) -->
-      <a-light type="point" color="#9D4EDD" intensity="0.3" position="-10 5 -20" distance="30"></a-light>
-      <a-light type="point" color="#5A189A" intensity="0.2" position="10 8 -25" distance="30"></a-light>
-      <a-light type="point" color="#C77DFF" intensity="0.25" position="0 10 -30" distance="40"></a-light>
-      
-      <!-- Soft ambient glow -->
-      <a-light type="ambient" color="#1A0B2E" intensity="0.5"></a-light>
     `;
   };
 
   // Get environment display info
   const getEnvironmentInfo = () => {
     switch (currentEnvironment) {
-      case 'breathing-temple':
+      case 'forest':
         return {
-          name: 'Templo da Respiração',
-          description: 'Ansiedade - Respiração guiada',
+          name: 'Floresta de Relaxamento',
+          description: 'Relaxamento profundo e calma',
           icon: Wind,
-          color: 'from-cyan-500 to-teal-600'
+          color: 'from-emerald-500 to-teal-600'
         };
-      case 'sunrise-meadow':
+      case 'beach':
         return {
-          name: 'Prado do Amanhecer',
-          description: 'Depressão - Energia positiva',
+          name: 'Praia de Mindfulness',
+          description: 'Atenção plena e serenidade',
           icon: Sun,
-          color: 'from-amber-400 to-orange-500'
+          color: 'from-blue-400 to-indigo-500'
         };
-      case 'sensory-void':
+      case 'classroom':
         return {
-          name: 'Vazio Sensorial',
-          description: 'Burnout - Descanso mental',
+          name: 'Sala de Aula Social',
+          description: 'Treino de exposição e convívio',
           icon: Sparkles,
-          color: 'from-violet-500 to-purple-600'
+          color: 'from-slate-500 to-slate-700'
         };
     }
   };
@@ -547,7 +458,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
   return (
     <div ref={sceneRef} className="relative w-full h-screen bg-slate-900 overflow-hidden">
       {/* A-Frame Scene */}
-      <div 
+      <div
         ref={containerRef}
         className="absolute inset-0"
         dangerouslySetInnerHTML={{
@@ -575,8 +486,8 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
         }}
       />
 
-      {/* Breathing Guide Overlay (only for breathing-temple) */}
-      <BreathingGuide isActive={currentEnvironment === 'breathing-temple'} />
+      {/* Breathing Guide Overlay (only for forest) */}
+      <BreathingGuide isActive={currentEnvironment === 'forest'} />
 
       {/* UI Overlay */}
       <div className="absolute inset-0 pointer-events-none">
@@ -609,7 +520,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            
+
             <Card className="bg-white/90 backdrop-blur-sm">
               <CardContent className="p-2 flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${envInfo.color} flex items-center justify-center`}>
@@ -621,7 +532,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
                 </div>
               </CardContent>
             </Card>
-            
+
             <Button
               variant="secondary"
               size="icon"
@@ -674,7 +585,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
         )}
 
         {/* Retícula (Gaze Cursor) */}
-        <div 
+        <div
           className="absolute pointer-events-none transition-all duration-100 z-30"
           style={{
             left: `${reticleX}%`,
@@ -683,15 +594,13 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
           }}
         >
           {/* Outer ring */}
-          <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
-            isGazing ? 'border-emerald-400' : 'border-white/50'
-          }`}>
+          <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${isGazing ? 'border-emerald-400' : 'border-white/50'
+            }`}>
             {/* Inner dot */}
-            <div className={`w-2 h-2 rounded-full ${
-              isGazing ? 'bg-emerald-400' : 'bg-white/70'
-            }`} />
+            <div className={`w-2 h-2 rounded-full ${isGazing ? 'bg-emerald-400' : 'bg-white/70'
+              }`} />
           </div>
-          
+
           {/* Gaze progress ring */}
           {isGazing && (
             <svg className="absolute inset-0 w-12 h-12 -rotate-90">
@@ -726,12 +635,14 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
         )}
 
         {/* Mic Status */}
-        {isMicActive && (
+        {(isMicActive || isTherapistSpeaking) && (
           <div className="absolute top-20 left-4 pointer-events-auto z-20">
-            <Card className="bg-rose-500 text-white border-none">
+            <Card className="bg-rose-500 text-white border-none animate-pulse">
               <CardContent className="p-3 flex items-center gap-2">
-                <Mic className="w-4 h-4 animate-pulse" />
-                <span className="text-sm font-medium">Terapeuta falando...</span>
+                <Mic className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {isTherapistSpeaking ? 'Terapeuta falando...' : 'Seu microfone está ativo'}
+                </span>
               </CardContent>
             </Card>
           </div>
@@ -756,11 +667,10 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
                         <button
                           key={level}
                           onClick={() => setIntensity(level as 1 | 2 | 3)}
-                          className={`w-6 h-6 rounded text-xs font-bold transition-colors ${
-                            level <= intensity 
-                              ? 'bg-gradient-to-br ' + envInfo.color + ' text-white' 
-                              : 'bg-slate-200 text-slate-400'
-                          }`}
+                          className={`w-6 h-6 rounded text-xs font-bold transition-colors ${level <= intensity
+                            ? 'bg-gradient-to-br ' + envInfo.color + ' text-white'
+                            : 'bg-slate-200 text-slate-400'
+                            }`}
                         >
                           {level}
                         </button>
@@ -822,7 +732,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
             }}
           >
             <Heart className="w-10 h-10 text-white" />
-            
+
             {/* Gaze Progress Ring */}
             {isGazing && (
               <svg className="absolute inset-0 w-full h-full -rotate-90">

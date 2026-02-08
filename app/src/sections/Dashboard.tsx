@@ -9,15 +9,15 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  Brain, 
-  Users, 
-  Calendar, 
-  Activity, 
-  LogOut, 
-  Search, 
-  Plus, 
-  Play, 
+import {
+  Brain,
+  Users,
+  Calendar,
+  Activity,
+  LogOut,
+  Search,
+  Plus,
+  Play,
   FileText,
   Phone,
   Mail,
@@ -27,13 +27,13 @@ import {
   TrendingDown,
   BarChart3
 } from 'lucide-react';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Legend,
   BarChart,
@@ -453,7 +453,7 @@ const Dashboard: React.FC = () => {
                   className="pl-10"
                 />
               </div>
-              <Button 
+              <Button
                 onClick={() => setCurrentView('patient-register')}
                 className="bg-gradient-to-r from-teal-500 to-purple-600"
               >
@@ -463,15 +463,15 @@ const Dashboard: React.FC = () => {
             </div>
 
             <Card>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead>Contato</TableHead>
-                      <TableHead>DASS-21 (Dep/Ans/Est)</TableHead>
-                      <TableHead>Última Avaliação</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead className="min-w-[200px]">Paciente</TableHead>
+                      <TableHead className="min-w-[150px]">Contato</TableHead>
+                      <TableHead className="min-w-[220px]">DASS-21 (Dep/Ans/Est)</TableHead>
+                      <TableHead className="min-w-[120px]">Última Avaliação</TableHead>
+                      <TableHead className="text-right min-w-[150px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -575,16 +575,16 @@ const Dashboard: React.FC = () => {
                   Visualize todas as sessões realizadas e agendadas
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead>Sessão</TableHead>
-                      <TableHead>Ambiente</TableHead>
-                      <TableHead>Intensidade</TableHead>
-                      <TableHead>Duração</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="min-w-[180px]">Paciente</TableHead>
+                      <TableHead className="min-w-[80px]">Sessão</TableHead>
+                      <TableHead className="min-w-[150px]">Ambiente</TableHead>
+                      <TableHead className="min-w-[100px]">Intensidade</TableHead>
+                      <TableHead className="min-w-[100px]">Duração</TableHead>
+                      <TableHead className="min-w-[150px]">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -606,11 +606,10 @@ const Dashboard: React.FC = () => {
                             {[1, 2, 3].map((level) => (
                               <div
                                 key={level}
-                                className={`w-2 h-2 rounded-full ${
-                                  level <= session.intensity_level
+                                className={`w-2 h-2 rounded-full ${level <= session.intensity_level
                                     ? 'bg-purple-500'
                                     : 'bg-slate-200'
-                                }`}
+                                  }`}
                               />
                             ))}
                           </div>
@@ -656,7 +655,7 @@ const Dashboard: React.FC = () => {
               </div>
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedPatient && (
             <div className="space-y-6">
               {/* Patient Info */}
@@ -668,7 +667,7 @@ const Dashboard: React.FC = () => {
                 <div className="p-4 bg-slate-50 rounded-lg">
                   <p className="text-sm text-slate-500">Data de Nascimento</p>
                   <p className="font-medium">
-                    {selectedPatient.date_of_birth 
+                    {selectedPatient.date_of_birth
                       ? new Date(selectedPatient.date_of_birth).toLocaleDateString('pt-BR')
                       : 'Não informado'}
                   </p>
@@ -725,7 +724,7 @@ const Dashboard: React.FC = () => {
 
               {/* Actions */}
               <div className="flex gap-3">
-                <Button 
+                <Button
                   className="flex-1 bg-gradient-to-r from-teal-500 to-purple-600"
                   onClick={() => {
                     setShowPatientDetails(false);
@@ -735,8 +734,8 @@ const Dashboard: React.FC = () => {
                   <Play className="w-4 h-4 mr-2" />
                   Iniciar Sessão
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="flex-1"
                   onClick={() => setCurrentView('dass21-form')}
                 >
