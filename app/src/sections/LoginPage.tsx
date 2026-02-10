@@ -290,6 +290,23 @@ const LoginPage: React.FC = () => {
               <User className="w-5 h-5 text-purple-600" />
               <span className="text-xs font-medium">Entrar como Paciente</span>
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                // Developers only: Force admin role and view
+                // In production, this would be tied to real auth
+                setCurrentView('admin-crm');
+              }}
+              className="col-span-2 border-slate-300 hover:bg-slate-100 flex items-center justify-center py-4 h-auto gap-4"
+            >
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-purple-600" />
+              </div>
+              <div className="text-left">
+                <span className="block text-xs font-bold uppercase text-slate-500">Acesso Master</span>
+                <span className="text-sm font-medium">Entrar como Super Admin (CEO)</span>
+              </div>
+            </Button>
           </div>
           <p className="mt-4 text-center text-[10px] text-slate-400">
             Acesso rápido para testes de interface e sincronização.
