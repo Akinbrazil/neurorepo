@@ -104,7 +104,7 @@ const comparisonData = [
 ];
 
 const Dashboard: React.FC = () => {
-  const { user, logout, setCurrentView } = useAuth();
+  const { setCurrentView } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
   // Database simulation integration
@@ -123,12 +123,6 @@ const Dashboard: React.FC = () => {
   const filteredPatients = patients.filter((p: Patient) =>
     p.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Stats
-  const totalPatients = patients.length;
-  const activeSessions = sessions.filter(s => s.status === 'in_progress').length;
-  const scheduledSessions = sessions.filter(s => s.status === 'scheduled').length;
-  const completedSessions = sessions.filter(s => s.status === 'completed').length;
 
   const handleViewPatient = (patient: Patient) => {
     setSelectedPatient(patient);
