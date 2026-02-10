@@ -252,7 +252,7 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
         className="absolute inset-0"
         dangerouslySetInnerHTML={{
           __html: `
-            <a-scene embedded vr-mode-ui="enabled: true" renderer="antialias: true; colorManagement: true;">
+            <a-scene embedded vr-mode-ui="enabled: true" renderer="antialias: true; colorManagement: true;" neuro-xr-engine>
               <a-sky color="${colors.sky}"></a-sky>
               <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="${colors.ground}"></a-plane>
               
