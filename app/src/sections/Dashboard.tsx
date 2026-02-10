@@ -160,6 +160,24 @@ const Dashboard: React.FC = () => {
     alert("Link copiado! Envie por WhatsApp ou SMS para o paciente.");
   };
 
+  const handleSendWhatsApp = () => {
+    if (!selectedPatient || !generatedLink) return;
+    const message = window.encodeURIComponent(
+      `Olá ${selectedPatient.nome}, aqui é o seu terapeuta. \n\nClique no link abaixo para iniciarmos nossa sessão de VR hoje: \n${generatedLink}`
+    );
+    // Removing non-numeric characters from phone for wa.me
+    const cleanPhone = selectedPatient.tel.replace(/\D/g, '');
+    const url = `https://wa.me/${cleanPhone}?text=${message}`;
+    window.open(url, '_blank');
+  };
+
+  const handleSendEmail = () => {
+    if (!selectedPatient || !generatedLink) return;
+    const subject = window.encodeURIComponent("Sua Sessão de Realidade Virtual");
+    const body = window.encodeURIComponent(`Link para acesso: ${generatedLink}`);
+    window.location.href = `mailto:${selectedPatient.email}?subject=${subject}&body=${body}`;
+  };
+
   const handleSaveReport = () => {
     if (!sessionNote) return;
     // Simulate saving (Admin side would only see a log: "T1 created report for P1")
@@ -660,9 +678,25 @@ const Dashboard: React.FC = () => {
                             <code className="block p-2 bg-slate-50 rounded border border-slate-100 text-[10px] text-purple-600 break-all font-mono">
                               {generatedLink}
                             </code>
-                            <Button size="sm" variant="outline" onClick={handleCopyLink} className="w-full text-xs h-7">
-                              Copiar Link
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" onClick={handleCopyLink} className="flex-1 text-[10px] h-8">
+                                Copiar
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="flex-1 text-[10px] h-8 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                onClick={handleSendWhatsApp}
+                              >
+                                <Phone className="w-3 h-3 mr-1" /> WhatsApp
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="flex-1 text-[10px] h-8 bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={handleSendEmail}
+                              >
+                                <FileText className="w-3 h-3 mr-1" /> E-mail
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </CardContent>

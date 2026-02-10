@@ -19,6 +19,7 @@ export interface Patient {
     nome: string;
     idade: number;
     tel: string;
+    email: string;
     relatorios: string[];
     categoria?: AgeCategory;
     // DASS-21 Metrics (MVP)
@@ -49,6 +50,7 @@ export const Database = {
             nome: 'Carlos Eduardo',
             idade: 10,
             tel: '(11) 99988-1122',
+            email: 'carlos@email.com',
             relatorios: ['Sessão 1: Calmo, boa resposta ao ambiente de Floresta.'],
             depression_score: 16,
             anxiety_score: 20,
@@ -65,6 +67,7 @@ export const Database = {
             nome: 'Julia Paes',
             idade: 25,
             tel: '(11) 98877-2233',
+            email: 'julia@email.com',
             relatorios: ['Sessão Inicial: Ansiedade leve relatada.'],
             depression_score: 8,
             anxiety_score: 12,
@@ -75,27 +78,27 @@ export const Database = {
             stress_severity: 'Moderado',
             last_assessment_date: '2024-01-20'
         },
-        { id: 'P3', terapeutaId: 'T1', nome: 'Marcos Oliveira', idade: 16, tel: '(11) 97766-3344', relatorios: [] },
+        { id: 'P3', terapeutaId: 'T1', nome: 'Marcos Oliveira', idade: 16, tel: '(11) 97766-3344', email: 'marcos@email.com', relatorios: [] },
 
         // Vinculados ao T2 (Dra. Beatriz)
-        { id: 'P4', terapeutaId: 'T2', nome: 'António Silva', idade: 45, tel: '+351 912 345 678', relatorios: ['Sessão 1: Relaxamento profundo na Praia.'] },
-        { id: 'P5', terapeutaId: 'T2', nome: 'Maria João', idade: 12, tel: '+351 913 456 789', relatorios: [] },
+        { id: 'P4', terapeutaId: 'T2', nome: 'António Silva', idade: 45, tel: '+351 912 345 678', email: 'antonio@email.pt', relatorios: ['Sessão 1: Relaxamento profundo na Praia.'] },
+        { id: 'P5', terapeutaId: 'T2', nome: 'Maria João', idade: 12, tel: '+351 913 456 789', email: 'maria@email.pt', relatorios: [] },
 
         // Vinculados ao T3 (Dr. André)
-        { id: 'P6', terapeutaId: 'T3', nome: 'Felipe Rocha', idade: 32, tel: '(21) 96655-4433', relatorios: ['Foco em controle de estresse via temple.'] },
-        { id: 'P7', terapeutaId: 'T3', nome: 'Gabriela Mendes', idade: 19, tel: '(21) 95544-3322', relatorios: [] },
-        { id: 'P8', terapeutaId: 'T3', nome: 'Roberto Cruz', idade: 28, tel: '(21) 94433-2211', relatorios: [] },
+        { id: 'P6', terapeutaId: 'T3', nome: 'Felipe Rocha', idade: 32, tel: '(21) 96655-4433', email: 'felipe@email.com', relatorios: ['Foco em controle de estresse via temple.'] },
+        { id: 'P7', terapeutaId: 'T3', nome: 'Gabriela Mendes', idade: 19, tel: '(21) 95544-3322', email: 'gabriela@email.com', relatorios: [] },
+        { id: 'P8', terapeutaId: 'T3', nome: 'Roberto Cruz', idade: 28, tel: '(21) 94433-2211', email: 'roberto@email.com', relatorios: [] },
 
         // Vinculados ao T4 (Dra. Helena)
-        { id: 'P9', terapeutaId: 'T4', nome: 'Sara Mendes', idade: 8, tel: '+351 922 444 555', relatorios: ['Utilizando avatar lúdico para engajamento.'] },
-        { id: 'P10', terapeutaId: 'T4', nome: 'João Pedro', idade: 14, tel: '+351 923 555 666', relatorios: [] },
-        { id: 'P11', terapeutaId: 'T4', nome: 'Inês Fontes', idade: 38, tel: '+351 924 666 777', relatorios: [] },
+        { id: 'P9', terapeutaId: 'T4', nome: 'Sara Mendes', idade: 8, tel: '+351 922 444 555', email: 'sara@email.pt', relatorios: ['Utilizando avatar lúdico para engajamento.'] },
+        { id: 'P10', terapeutaId: 'T4', nome: 'João Pedro', idade: 14, tel: '+351 923 555 666', email: 'joao@email.pt', relatorios: [] },
+        { id: 'P11', terapeutaId: 'T4', nome: 'Inês Fontes', idade: 38, tel: '+351 924 666 777', email: 'ines@email.pt', relatorios: [] },
 
         // Vinculados ao T5 (Dr. Ricardo)
-        { id: 'P12', terapeutaId: 'T5', nome: 'Thiago Souza', idade: 31, tel: '(31) 93322-1100', relatorios: ['Melhora na variabilidade da frequência cardíaca.'] },
-        { id: 'P13', terapeutaId: 'T5', nome: 'Patrícia Neves', idade: 22, tel: '(31) 92211-0099', relatorios: [] },
-        { id: 'P14', terapeutaId: 'T5', nome: 'Gustavo Lima', idade: 11, tel: '(31) 91100-9988', relatorios: [] },
-        { id: 'P15', terapeutaId: 'T5', nome: 'Fernanda Lima', idade: 27, tel: '(31) 90099-8877', relatorios: [] }
+        { id: 'P12', terapeutaId: 'T5', nome: 'Thiago Souza', idade: 31, tel: '(31) 93322-1100', email: 'thiago@email.com', relatorios: ['Melhora na variabilidade da frequência cardíaca.'] },
+        { id: 'P13', terapeutaId: 'T5', nome: 'Patrícia Neves', idade: 22, tel: '(31) 92211-0099', email: 'patricia@email.com', relatorios: [] },
+        { id: 'P14', terapeutaId: 'T5', nome: 'Gustavo Lima', idade: 11, tel: '(31) 91100-9988', email: 'gustavo@email.com', relatorios: [] },
+        { id: 'P15', terapeutaId: 'T5', nome: 'Fernanda Lima', idade: 27, tel: '(31) 90099-8877', email: 'fernanda@email.com', relatorios: [] }
     ] as Patient[]
 };
 
