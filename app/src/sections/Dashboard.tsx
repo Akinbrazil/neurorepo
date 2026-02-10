@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Brain,
@@ -24,7 +24,8 @@ import {
   CheckCircle,
   Clock,
   TrendingDown,
-  BarChart3
+  BarChart3,
+  Headset
 } from 'lucide-react';
 import {
   LineChart,
@@ -112,6 +113,12 @@ const Dashboard: React.FC = () => {
   const [sessions] = useState<Session[]>(mockSessions);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showPatientDetails, setShowPatientDetails] = useState(false);
+  const [sessionNote, setSessionNote] = useState('');
+
+  // VR Session states
+  const [selectedEnvironment, setSelectedEnvironment] = useState('ansiedade_lago');
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [showLinkDisplay, setShowLinkDisplay] = useState(false);
 
   const filteredPatients = patients.filter((p: Patient) =>
     p.nome.toLowerCase().includes(searchTerm.toLowerCase())
@@ -126,11 +133,39 @@ const Dashboard: React.FC = () => {
   const handleViewPatient = (patient: Patient) => {
     setSelectedPatient(patient);
     setShowPatientDetails(true);
+    // Reset VR link when switching patients
+    setGeneratedLink('');
+    setShowLinkDisplay(false);
   };
 
   const handleStartSession = () => {
     // In a real app, this would set the active patient in AuthContext
     setCurrentView('session-control');
+  };
+
+  const handleGenerateVRLink = () => {
+    const sessionId = Math.random().toString(36).substring(7);
+    const baseUrl = window.location.origin + '/vrsession'; // Using current origin for demo
+    const linkFinal = `${baseUrl}?room=${sessionId}&env=${selectedEnvironment}&user=patient`;
+
+    setGeneratedLink(linkFinal);
+    setShowLinkDisplay(true);
+
+    // Business Intelligence Log (CEO Monitoring)
+    BusinessEngine.registrarLogSessao(sessionId, selectedEnvironment);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(generatedLink);
+    alert("Link copiado! Envie por WhatsApp ou SMS para o paciente.");
+  };
+
+  const handleSaveReport = () => {
+    if (!sessionNote) return;
+    // Simulate saving (Admin side would only see a log: "T1 created report for P1")
+    console.log(`Log capturado: Terapeuta T1 criou um relatório para paciente ${selectedPatient?.id} às ${new Date().toLocaleTimeString()} (IP: Local)`);
+    alert("Relatório salvo com sucesso no banco de dados criptografado.");
+    setSessionNote('');
   };
 
   const getSeverityColor = (severity: string) => {
@@ -527,112 +562,161 @@ const Dashboard: React.FC = () => {
         </Tabs>
       </main>
 
-      {/* Patient Details Dialog */}
+      {/* Patient Details Dialog / Ficha do Paciente */}
       <Dialog open={showPatientDetails} onOpenChange={setShowPatientDetails}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <Avatar className="w-12 h-12">
-                <AvatarFallback className="bg-gradient-to-br from-teal-100 to-purple-100 text-teal-700 text-lg">
-                  {selectedPatient?.nome?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p>{selectedPatient?.nome}</p>
-                <p className="text-sm font-normal text-slate-500">
-                  {selectedPatient?.tel}
-                </p>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedPatient && (
-            <div className="space-y-6">
-              {/* Patient Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-slate-500">Contato</p>
-                  <p className="font-medium">{selectedPatient.tel}</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-slate-500">Faixa Etária</p>
-                  <p className="font-medium">
-                    {selectedPatient.idade} anos ({selectedPatient.categoria})
-                  </p>
-                </div>
-              </div>
-
-              {/* DASS-21 Results */}
-              {selectedPatient.total_score && (
+        <DialogContent className="max-w-4xl p-0 overflow-hidden border-none bg-slate-50">
+          <div className="flex flex-col h-full max-h-[90vh]">
+            <header className="p-6 bg-white border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-14 h-14 border-2 border-teal-100">
+                  <AvatarFallback className="bg-gradient-to-br from-teal-500 to-purple-600 text-white text-xl font-bold">
+                    {selectedPatient?.nome?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
-                  <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-teal-500" />
-                    Última Avaliação DASS-21
-                  </h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 bg-rose-50 rounded-lg text-center">
-                      <p className="text-3xl font-bold text-rose-600">
-                        {selectedPatient.depression_score}
-                      </p>
-                      <p className="text-sm text-rose-700 mt-1">Depressão</p>
-                      <Badge className={`mt-2 ${getSeverityColor(selectedPatient.depression_severity || '')}`}>
-                        {selectedPatient.depression_severity}
-                      </Badge>
-                    </div>
-                    <div className="p-4 bg-amber-50 rounded-lg text-center">
-                      <p className="text-3xl font-bold text-amber-600">
-                        {selectedPatient.anxiety_score}
-                      </p>
-                      <p className="text-sm text-amber-700 mt-1">Ansiedade</p>
-                      <Badge className={`mt-2 ${getSeverityColor(selectedPatient.anxiety_severity || '')}`}>
-                        {selectedPatient.anxiety_severity}
-                      </Badge>
-                    </div>
-                    <div className="p-4 bg-purple-50 rounded-lg text-center">
-                      <p className="text-3xl font-bold text-purple-600">
-                        {selectedPatient.stress_score}
-                      </p>
-                      <p className="text-sm text-purple-700 mt-1">Estresse</p>
-                      <Badge className={`mt-2 ${getSeverityColor(selectedPatient.stress_severity || '')}`}>
-                        {selectedPatient.stress_severity}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="mt-4 p-4 bg-slate-50 rounded-lg">
-                    <p className="text-sm text-slate-500">Pontuação Total</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {selectedPatient.total_score}/126
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Avaliado em: {new Date(selectedPatient.last_assessment_date || '').toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Prontuário Digital: <span className="text-teal-600">{selectedPatient?.nome}</span>
+                  </h2>
+                  <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-200 border-none px-3 py-1 mt-1">
+                    {selectedPatient ? BusinessEngine.getClassificacaoEtaria(selectedPatient.idade) : 'Adulto'}
+                  </Badge>
                 </div>
-              )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShowPatientDetails(false)}>Fechar</Button>
+                <Button size="sm" className="bg-gradient-to-r from-teal-500 to-purple-600" onClick={handleStartSession}>
+                  <Play className="w-4 h-4 mr-2" /> Iniciar VR
+                </Button>
+              </div>
+            </header>
 
-              {/* Actions */}
-              <div className="flex gap-3">
-                <Button
-                  className="flex-1 bg-gradient-to-r from-teal-500 to-purple-600"
-                  onClick={() => {
-                    setShowPatientDetails(false);
-                    handleStartSession();
-                  }}
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  Iniciar Sessão
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setCurrentView('dass21-form')}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Nova Avaliação DASS-21
-                </Button>
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Dados Gerais */}
+                <section className="space-y-4">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Dados Gerais</h3>
+                  <Card className="border-slate-200 shadow-sm">
+                    <CardContent className="p-4 space-y-4">
+                      <div>
+                        <p className="text-xs text-slate-500">Idade</p>
+                        <p className="font-semibold text-slate-900">{selectedPatient?.idade} anos</p>
+                      </div>
+                      <div className="pt-3 border-t border-slate-100">
+                        <p className="text-xs text-slate-500">Telefone</p>
+                        <p className="font-semibold text-slate-900">{selectedPatient?.tel}</p>
+                      </div>
+                      <div className="pt-3 border-t border-slate-100">
+                        <p className="text-xs text-slate-500">Localização</p>
+                        <p className="text-sm font-medium text-slate-700">
+                          {selectedPatient && (() => {
+                            const terapeuta = BusinessEngine.getTherapistView('T1').therapist;
+                            const regiao = terapeuta ? BusinessEngine.getRegionLabel(terapeuta.pais) : 'Estado';
+                            return `${terapeuta?.pais} (${regiao}: ${terapeuta?.estado})`;
+                          })()}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* DASS-21 Summary */}
+                  {selectedPatient?.total_score && (
+                    <div className="p-4 bg-teal-50 rounded-xl border border-teal-100">
+                      <p className="text-xs font-bold text-teal-700 uppercase mb-2">Último DASS-21</p>
+                      <div className="flex justify-between items-end">
+                        <span className="text-2xl font-black text-teal-800">{selectedPatient.total_score}</span>
+                        <span className="text-[10px] text-teal-600 mb-1">Score Total / 126</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* VR Control Panel */}
+                  <div className="pt-4 space-y-4">
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Controle Virtual</h3>
+                    <Card className="border-purple-200 bg-purple-50/30">
+                      <CardContent className="p-4 space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase">Ambiente Imersivo</label>
+                          <select
+                            value={selectedEnvironment}
+                            onChange={(e) => setSelectedEnvironment(e.target.value)}
+                            className="w-full p-2 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-purple-500"
+                          >
+                            <option value="ansiedade_lago">Ansiedade: Lago de Vidro</option>
+                            <option value="depressao_floresta">Depressão: Floresta Viva</option>
+                            <option value="burnout_cabana">Burnout: Cabana Acolhedora</option>
+                          </select>
+                        </div>
+
+                        <Button
+                          onClick={handleGenerateVRLink}
+                          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold"
+                        >
+                          <Headset className="w-4 h-4 mr-2" /> Iniciar Sessão Imersiva
+                        </Button>
+
+                        {showLinkDisplay && (
+                          <div className="p-3 bg-white border border-purple-100 rounded-lg space-y-2 animate-in slide-in-from-top-2 duration-300">
+                            <p className="text-[10px] font-medium text-slate-500">Envie este link para o paciente:</p>
+                            <code className="block p-2 bg-slate-50 rounded border border-slate-100 text-[10px] text-purple-600 break-all font-mono">
+                              {generatedLink}
+                            </code>
+                            <Button size="sm" variant="outline" onClick={handleCopyLink} className="w-full text-xs h-7">
+                              Copiar Link
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </section>
+
+                {/* Evolução Clínica */}
+                <section className="md:col-span-2 space-y-4">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Evolução Clínica</h3>
+                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[400px]">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+                      {selectedPatient?.relatorios && selectedPatient.relatorios.length > 0 ? (
+                        selectedPatient.relatorios.map((rel, idx) => (
+                          <div key={idx} className="p-4 bg-white rounded-lg border border-slate-100 shadow-sm">
+                            <div className="flex justify-between items-start mb-2">
+                              <Badge variant="outline" className="text-[10px] font-mono text-slate-400">
+                                {new Date().toLocaleDateString('pt-BR')}
+                              </Badge>
+                              <FileText className="w-3 h-3 text-slate-300" />
+                            </div>
+                            <p className="text-sm text-slate-700 leading-relaxed italic">"{rel}"</p>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2">
+                          <Activity className="w-8 h-8 opacity-20" />
+                          <p className="text-sm italic">Nenhum histórico disponível</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 bg-white border-t border-slate-200">
+                      <textarea
+                        value={sessionNote}
+                        onChange={(e) => setSessionNote(e.target.value)}
+                        placeholder="Escreva o relatório da sessão de hoje..."
+                        className="w-full h-24 p-3 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none resize-none transition-all"
+                      />
+                      <div className="flex justify-end mt-3">
+                        <Button
+                          onClick={handleSaveReport}
+                          disabled={!sessionNote}
+                          className="bg-teal-600 hover:bg-teal-700 text-white font-bold"
+                        >
+                          Salvar Evolução
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
               </div>
             </div>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

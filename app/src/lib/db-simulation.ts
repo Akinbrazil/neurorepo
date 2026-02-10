@@ -161,6 +161,12 @@ export const BusinessEngine = {
             product: "O cenário de Ansiedade é 3x mais usado por Adolescentes do que por Adultos (baseado em telemetria).",
             retention: "Terapeutas do gênero Feminino em Portugal estão gerando mais relatórios semanais do que a média global."
         };
+    },
+
+    // MONITORAMENTO DE SESSOES (LOG ADMIN)
+    registrarLogSessao(sessionId: string, ambiente: string) {
+        console.log(`[LOG ADMIN] Sessão ${sessionId} iniciada. Ambiente: ${ambiente}.`);
+        // Aqui futuramente persistimos no Supabase
     }
 };
 

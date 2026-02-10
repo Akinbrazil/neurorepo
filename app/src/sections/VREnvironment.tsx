@@ -2,10 +2,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Volume2, 
-  VolumeX, 
-  Maximize2, 
+import {
+  Volume2,
+  VolumeX,
+  Maximize2,
   Minimize2,
   Info,
   AlertTriangle,
@@ -27,25 +27,40 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
   initialIntensity = 1,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [environment] = useState<'floresta' | 'sala-aula'>(initialEnvironment);
+  const [environment, setEnvironment] = useState<'floresta' | 'sala-aula'>(initialEnvironment);
   const [intensity] = useState<1 | 2 | 3>(initialIntensity);
+
+  // URL Parameter Loader (Antigravity/WebXR Logic)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const envParam = urlParams.get('env');
+
+    if (envParam === 'ansiedade_lago' || envParam === 'floresta') {
+      setEnvironment('floresta');
+    } else if (envParam === 'depressao_floresta' || envParam === 'sala-aula') {
+      setEnvironment('sala-aula');
+    }
+
+    console.log(`Sessão iniciada no ambiente: ${envParam || initialEnvironment}`);
+  }, [initialEnvironment]);
+
   const [isMicActive] = useState(false);
   const [natureVolume, setNatureVolume] = useState(0.6);
-  
+
   // Comfort check state
   const [isGazing, setIsGazing] = useState(false);
   const [gazeProgress, setGazeProgress] = useState(0);
   const [comfortStatus, setComfortStatus] = useState<'comfortable' | 'neutral' | 'uncomfortable'>('neutral');
   const [showComfortFeedback, setShowComfortFeedback] = useState(false);
-  
+
   // Retícula (cursor) position - simulating gyroscope control
   const [reticleX, setReticleX] = useState(50);
   const [reticleY, setReticleY] = useState(50);
-  
+
   // Connection state
   const [isConnected] = useState(true);
   const [therapistName] = useState('Dra. Maria Silva');
-  
+
   // Refs
   const sceneRef = useRef<HTMLDivElement>(null);
   const gazeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -58,11 +73,11 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
       // Convert gamma (left/right tilt) and beta (front/back tilt) to percentages
       const gamma = event.gamma || 0; // -90 to 90
       const beta = event.beta || 0;   // -180 to 180
-      
+
       // Map to screen percentage (with deadzone in center)
       const x = Math.max(10, Math.min(90, 50 + (gamma / 45) * 40));
       const y = Math.max(10, Math.min(90, 50 + (beta / 45) * 40));
-      
+
       setReticleX(x);
       setReticleY(y);
     };
@@ -82,7 +97,7 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
     if (window.DeviceOrientationEvent) {
       window.addEventListener('deviceorientation', handleDeviceOrientation);
     }
-    
+
     // Fallback to mouse on desktop
     window.addEventListener('mousemove', handleMouseMove);
 
@@ -98,7 +113,7 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
     const distance = Math.sqrt(
       Math.pow(reticleX - 50, 2) + Math.pow(reticleY - 50, 2)
     );
-    
+
     if (distance < 15 && !isGazing) {
       handleGazeStart();
     } else if (distance >= 15 && isGazing) {
@@ -109,16 +124,16 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
   // Handle gaze on comfort icon
   const handleGazeStart = () => {
     if (isGazing) return;
-    
+
     setIsGazing(true);
     gazeStartTimeRef.current = Date.now();
-    
+
     gazeTimerRef.current = setInterval(() => {
       if (gazeStartTimeRef.current) {
         const elapsed = Date.now() - gazeStartTimeRef.current;
         const progress = Math.min((elapsed / 2000) * 100, 100);
         setGazeProgress(progress);
-        
+
         if (elapsed >= 2000) {
           // Gaze held for 2 seconds - trigger comfort check
           handleComfortCheck();
@@ -131,7 +146,7 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
     setIsGazing(false);
     setGazeProgress(0);
     gazeStartTimeRef.current = null;
-    
+
     if (gazeTimerRef.current) {
       clearInterval(gazeTimerRef.current);
       gazeTimerRef.current = null;
@@ -141,10 +156,10 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
   const handleComfortCheck = () => {
     setComfortStatus('comfortable');
     setShowComfortFeedback(true);
-    
+
     // In real implementation, this would send to Supabase
     console.log('Comfort check triggered via gaze - comfort_confirmed event');
-    
+
     // Reset after showing feedback
     setTimeout(() => {
       setShowComfortFeedback(false);
@@ -207,7 +222,7 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
   return (
     <div ref={sceneRef} className="relative w-full h-screen bg-slate-900 overflow-hidden">
       {/* A-Frame Scene - Using dangerouslySetInnerHTML to avoid TSX issues */}
-      <div 
+      <div
         ref={containerRef}
         className="absolute inset-0"
         dangerouslySetInnerHTML={{
@@ -362,7 +377,7 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
         </div>
 
         {/* Retícula (Gaze Cursor) */}
-        <div 
+        <div
           className="absolute pointer-events-none transition-all duration-100"
           style={{
             left: `${reticleX}%`,
@@ -371,15 +386,13 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
           }}
         >
           {/* Outer ring */}
-          <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
-            isGazing ? 'border-emerald-400' : 'border-white/50'
-          }`}>
+          <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${isGazing ? 'border-emerald-400' : 'border-white/50'
+            }`}>
             {/* Inner dot */}
-            <div className={`w-2 h-2 rounded-full ${
-              isGazing ? 'bg-emerald-400' : 'bg-white/70'
-            }`} />
+            <div className={`w-2 h-2 rounded-full ${isGazing ? 'bg-emerald-400' : 'bg-white/70'
+              }`} />
           </div>
-          
+
           {/* Gaze progress ring */}
           {isGazing && (
             <svg className="absolute inset-0 w-12 h-12 -rotate-90">
@@ -445,9 +458,8 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
                       {[1, 2, 3].map((level) => (
                         <div
                           key={level}
-                          className={`w-2 h-2 rounded-full ${
-                            level <= intensity ? 'bg-purple-500' : 'bg-slate-200'
-                          }`}
+                          className={`w-2 h-2 rounded-full ${level <= intensity ? 'bg-purple-500' : 'bg-slate-200'
+                            }`}
                         />
                       ))}
                     </div>
@@ -507,7 +519,7 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
             }}
           >
             <Heart className="w-10 h-10 text-white" />
-            
+
             {/* Gaze Progress Ring */}
             {isGazing && (
               <svg className="absolute inset-0 w-full h-full -rotate-90">
