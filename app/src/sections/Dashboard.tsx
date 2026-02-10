@@ -40,7 +40,8 @@ import {
   ReferenceLine
 } from 'recharts';
 import type { Session } from '@/types';
-import { getClinicalDataForTherapist } from '@/lib/db-simulation';
+import { BusinessEngine } from '@/lib/db-simulation';
+import type { Patient } from '@/lib/db-simulation';
 
 // Mock data for demonstration
 const mockSessions: Session[] = [
@@ -106,13 +107,13 @@ const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Database simulation integration
-  const clinicalData = getClinicalDataForTherapist('T1'); // Simulating Dr. Lucas
+  const clinicalData = BusinessEngine.getTherapistView('T1'); // Simulating Dr. Lucas
   const [patients] = useState(clinicalData.patients);
   const [sessions] = useState<Session[]>(mockSessions);
-  const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showPatientDetails, setShowPatientDetails] = useState(false);
 
-  const filteredPatients = patients.filter(p =>
+  const filteredPatients = patients.filter((p: Patient) =>
     p.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -122,7 +123,7 @@ const Dashboard: React.FC = () => {
   const scheduledSessions = sessions.filter(s => s.status === 'scheduled').length;
   const completedSessions = sessions.filter(s => s.status === 'completed').length;
 
-  const handleViewPatient = (patient: any) => {
+  const handleViewPatient = (patient: Patient) => {
     setSelectedPatient(patient);
     setShowPatientDetails(true);
   };

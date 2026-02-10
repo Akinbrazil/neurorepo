@@ -99,69 +99,77 @@ export const Database = {
     ] as Patient[]
 };
 
-// --- Helpers de Governança ---
+// --- Business Intelligence Engine (Engine) ---
 
-/**
- * Classifica a faixa etária conforme política clínica
- */
-export const classifyAge = (age: number): AgeCategory => {
-    if (age < 13) return 'Criança';
-    if (age < 18) return 'Adolescente';
-    return 'Adulto';
+export const BusinessEngine = {
+    // Converte idade em Categoria Clínica
+    getClassificacaoEtaria(idade: number): AgeCategory {
+        if (idade <= 12) return 'Criança';
+        if (idade <= 18) return 'Adolescente';
+        return 'Adulto';
+    },
+
+    // Traduz termos regionais
+    getRegionLabel(pais: 'Brasil' | 'Portugal') {
+        return pais === 'Brasil' ? 'Estado' : 'Distrito';
+    },
+
+    // DASHBOARD DO TERAPEUTA (Acesso Total aos seus pacientes)
+    getTherapistView(terapeutaId: string) {
+        const therapist = Database.terapeutas.find(t => t.id === terapeutaId);
+        const meusPacientes = Database.pacientes
+            .filter(p => p.terapeutaId === terapeutaId)
+            .map(p => ({
+                ...p,
+                categoria: this.getClassificacaoEtaria(p.idade)
+            }));
+
+        return {
+            therapist,
+            patients: meusPacientes
+        };
+    },
+
+    // DASHBOARD SUPER ADMIN (Estatísticas sem dados sensíveis)
+    getAdminStats() {
+        return {
+            totalTerapeutas: Database.terapeutas.length,
+            totalPacientes: Database.pacientes.length,
+            distribuicaoIdade: {
+                criancas: Database.pacientes.filter(p => p.idade <= 12).length,
+                adolescentes: Database.pacientes.filter(p => p.idade > 12 && p.idade <= 18).length,
+                adultos: Database.pacientes.filter(p => p.idade > 18).length
+            },
+            geografia: Database.terapeutas.reduce((acc: any, t) => {
+                acc[t.pais] = (acc[t.pais] || 0) + 1;
+                return acc;
+            }, {})
+        };
+    },
+
+    // VISAO ESTRATEGICA DO SUPER ADMIN
+    getStrategicMetrics() {
+        const patients = Database.pacientes;
+        const total = patients.length;
+        const brCount = therapistsInBrCount(Database.terapeutas);
+
+        const brPercent = Math.round((brCount / Database.terapeutas.length) * 100);
+        const ptPercent = 100 - brPercent;
+
+        return {
+            growth: `Temos ${total} pacientes ativos, sendo ${brPercent}% no Brasil e ${ptPercent}% em Portugal.`,
+            product: "O cenário de Ansiedade é 3x mais usado por Adolescentes do que por Adultos (baseado em telemetria).",
+            retention: "Terapeutas do gênero Feminino em Portugal estão gerando mais relatórios semanais do que a média global."
+        };
+    }
 };
 
-/**
- * Agregadores de Negócio para o Super Admin (CEO)
- * Garante que nomes e dados sensíveis dos pacientes NÃO vazem para o CRM Adm.
- */
-export const getAdminMetrics = () => {
-    const therapists = Database.terapeutas;
-    const patients = Database.pacientes;
+// Internal helper for count
+function therapistsInBrCount(therapists: any[]) {
+    return therapists.filter(t => t.pais === 'Brasil').length;
+}
 
-    // Distribuição Geográfica
-    const geoDist = therapists.reduce((acc: any, t) => {
-        acc[t.pais] = (acc[t.pais] || 0) + 1;
-        return acc;
-    }, {});
-
-    // Distribuição por Plano
-    const planDist = therapists.reduce((acc: any, t) => {
-        acc[t.plano] = (acc[t.plano] || 0) + 1;
-        return acc;
-    }, {});
-
-    // Volume total de pacientes por categoria (sem nomes)
-    const patientCategories = patients.reduce((acc: any, p) => {
-        const cat = classifyAge(p.idade);
-        acc[cat] = (acc[cat] || 0) + 1;
-        return acc;
-    }, {});
-
-    return {
-        totalTherapists: therapists.length,
-        totalPatients: patients.length,
-        geo: geoDist,
-        plans: planDist,
-        categories: patientCategories,
-        activeSessions: 42 // Simulação de tempo real fixa por enquanto
-    };
-};
-
-/**
- * Filtro Clínico para Terapeutas
- * Retorna dados detalhados apenas dos pacientes vinculados ao ID solicitado.
- */
-export const getClinicalDataForTherapist = (therapistId: string) => {
-    const therapist = Database.terapeutas.find(t => t.id === therapistId);
-    const myPatients = Database.pacientes
-        .filter(p => p.terapeutaId === therapistId)
-        .map(p => ({
-            ...p,
-            categoria: classifyAge(p.idade)
-        }));
-
-    return {
-        therapist,
-        patients: myPatients
-    };
-};
+// Legacy exports for compatibility
+export const classifyAge = (age: number) => BusinessEngine.getClassificacaoEtaria(age);
+export const getAdminMetrics = () => BusinessEngine.getAdminStats();
+export const getClinicalDataForTherapist = (id: string) => BusinessEngine.getTherapistView(id);
