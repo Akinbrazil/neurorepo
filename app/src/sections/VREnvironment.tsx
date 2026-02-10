@@ -22,6 +22,27 @@ interface VREnvironmentProps {
   initialIntensity?: 1 | 2 | 3;
 }
 
+// Register A-Frame XR Engine for adaptive controls (Step 3 of Roadmap)
+if (typeof window !== 'undefined' && (window as any).AFRAME) {
+  const AFRAME = (window as any).AFRAME;
+  if (!AFRAME.components['neuro-xr-engine']) {
+    AFRAME.registerComponent('neuro-xr-engine', {
+      init: function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const env = urlParams.get('env');
+
+        // 1. Identificação de Dispositivo
+        this.el.addEventListener('enter-vr', () => {
+          console.log("Modo Oculus/VR Ativado: Habilitando controles 6DoF");
+          // Here we could toggle visibility of elements if needed within the scene
+        });
+
+        console.log(`[NEURO-ENGINE] Inicializado. Ambiente: ${env || 'padrão'}`);
+      }
+    });
+  }
+}
+
 const VREnvironment: React.FC<VREnvironmentProps> = ({
   environment: initialEnvironment = 'floresta',
   initialIntensity = 1,
