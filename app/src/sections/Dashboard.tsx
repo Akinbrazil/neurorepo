@@ -145,8 +145,10 @@ const Dashboard: React.FC = () => {
 
   const handleGenerateVRLink = () => {
     const sessionId = Math.random().toString(36).substring(7);
-    const baseUrl = window.location.origin + '/vrsession'; // Using current origin for demo
-    const linkFinal = `${baseUrl}?room=${sessionId}&env=${selectedEnvironment}&user=patient`;
+    // Ensuring the link uses the correct view parameter for routing
+    const origin = window.location.origin;
+    const path = window.location.pathname;
+    const linkFinal = `${origin}${path}?view=vr-environment&room=${sessionId}&env=${selectedEnvironment}&user=patient`;
 
     setGeneratedLink(linkFinal);
     setShowLinkDisplay(true);

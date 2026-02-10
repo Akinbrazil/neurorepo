@@ -31,6 +31,8 @@ const AppContent: React.FC = () => {
       setCurrentView('therapist-demo');
     } else if (view === 'vr-environments') {
       setCurrentView('vr-environments');
+    } else if (view === 'vr-environment') {
+      setCurrentView('vr-environment');
     }
   }, [setCurrentView]);
 

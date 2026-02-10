@@ -35,11 +35,15 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
     const urlParams = new URLSearchParams(window.location.search);
     const envParam = urlParams.get('env');
 
-    if (envParam === 'ansiedade_lago' || envParam === 'floresta') {
+    if (envParam === 'ansiedade_lago' || envParam === 'lago' || envParam === 'floresta') {
       setEnvironment('floresta');
-    } else if (envParam === 'depressao_floresta' || envParam === 'sala-aula') {
+    } else if (envParam === 'depressao_floresta' || envParam === 'sala-aula' || envParam === 'escola') {
       setEnvironment('sala-aula');
+    } else if (envParam === 'burnout_cabana' || envParam === 'cabana') {
+      setEnvironment('floresta'); // Map to available for now
     }
+
+    console.log(`[DEBUG VR] Parâmetros de URL: room=${urlParams.get('room')}, env=${envParam}`);
 
     console.log(`Sessão iniciada no ambiente: ${envParam || initialEnvironment}`);
   }, [initialEnvironment]);
