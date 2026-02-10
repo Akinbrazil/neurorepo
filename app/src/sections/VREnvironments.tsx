@@ -34,6 +34,50 @@ interface VREnvironmentsProps {
   onComfortCheck?: (status: 'comfortable' | 'uncomfortable') => void;
 }
 
+// Register A-Frame XR Manager for adaptive controls
+if (typeof window !== 'undefined' && (window as any).AFRAME) {
+  const AFRAME = (window as any).AFRAME;
+  if (!AFRAME.components['xr-manager']) {
+    AFRAME.registerComponent('xr-manager', {
+      schema: {
+        isVR: { type: 'boolean', default: false }
+      },
+      init: function () {
+        // @ts-ignore
+        const el = this.el;
+
+        // Listen for VR entry
+        el.addEventListener('enter-vr', () => {
+          if (AFRAME.utils.device.checkHeadsetConnected()) {
+            // @ts-ignore
+            this.data.isVR = true;
+            this.updateMode(true);
+          }
+        });
+
+        // Listen for VR exit
+        el.addEventListener('exit-vr', () => {
+          // @ts-ignore
+          this.data.isVR = false;
+          this.updateMode(false);
+        });
+
+        // Initial setup
+        this.updateMode(false);
+      },
+      updateMode: function (isVR: boolean) {
+        const hud2D = document.getElementById('hud-mobile');
+        const hud3D = document.getElementById('hud-vr');
+
+        if (hud2D) hud2D.style.display = isVR ? 'none' : 'block';
+        if (hud3D) hud3D.setAttribute('visible', isVR ? 'true' : 'false');
+
+        console.log(isVR ? "Modo Oculus Ativado: Sensores 6DoF" : "Modo Mobile Ativado: Giroscópio");
+      }
+    });
+  }
+}
+
 // Breathing animation cycle component
 const BreathingGuide: React.FC<{ isActive: boolean }> = ({ isActive }) => {
   const [phase, setPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
@@ -486,8 +530,33 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
           {currentEnvironment === 'depression' && renderDepression()}
           {currentEnvironment === 'burnout' && renderBurnout()}
 
-          {/* Immersive HUD (3D) */}
-          <a-entity position="0 2.5 -4" rotation="10 0 0">
+          {/* Advanced Camera Rig with Adaptive Controls */}
+          <a-entity id="rig" xr-manager>
+            <a-camera
+              // @ts-ignore
+              ref={cameraRef}
+              look-controls="enabled: true; magicWindowTrackingEnabled: true"
+              wasd-controls="enabled: false"
+            >
+              <a-entity
+                id="fuse-cursor"
+                ref={reticleEntityRef}
+                cursor="fuse: true; fuseTimeout: 1500"
+                raycaster="objects: .clickable"
+                position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                material="color: #10B981; shader: flat"
+              >
+              </a-entity>
+            </a-camera>
+
+            {/* VR Laser Controls (Active in VR headsets) */}
+            <a-entity laser-controls="hand: right" raycaster="objects: .clickable"></a-entity>
+            <a-entity laser-controls="hand: left" raycaster="objects: .clickable"></a-entity>
+          </a-entity>
+
+          {/* Immersive HUD (3D) - Managed by xr-manager */}
+          <a-entity id="hud-vr" position="0 2.5 -4" rotation="10 0 0" visible="false">
             <a-plane width="3" height="0.8" color="#000" material="opacity: 0.6; transparent: true" radius="0.1"></a-plane>
             <a-text value={envInfo.name.toUpperCase()} align="center" position="0 0.15 0.01" scale="0.6 0.6 0.6" color="#FFF"></a-text>
             <a-text value="Status: Sincronizado" align="center" position="0 -0.15 0.01" scale="0.4 0.4 0.4" color="#10B981"></a-text>
@@ -498,6 +567,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
             <a-sphere
               radius="0.3"
               color={comfortStatus === 'comfortable' ? '#10B981' : '#F43F5E'}
+              className="clickable"
             ></a-sphere>
             <a-text
               value="Olhe para confirmar conforto"
@@ -507,20 +577,6 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
               color="white"
             ></a-text>
           </a-entity>
-
-          {/* Camera & Optimized Cursor */}
-          <a-entity position="0 1.6 0">
-            <a-camera ref={cameraRef} look-controls="enabled: true" wasd-controls="enabled: false">
-              <a-entity
-                ref={reticleEntityRef}
-                cursor="fuse: true; fuseTimeout: 2000"
-                position="0 0 -1"
-                geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-                material="color: #10B981; shader: flat"
-              >
-              </a-entity>
-            </a-camera>
-          </a-entity>
         </a-scene>
       </div>
 
@@ -528,7 +584,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
       <BreathingGuide isActive={currentEnvironment === 'anxiety'} />
 
       {/* UI Overlay */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div id="hud-mobile" className="absolute inset-0 pointer-events-none">
         {/* Top Bar */}
         <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start">
           {/* Connection Status */}
