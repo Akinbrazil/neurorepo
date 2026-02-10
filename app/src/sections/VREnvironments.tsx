@@ -373,7 +373,6 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
       <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#1a1a1a"></a-plane>
 
       {/* Curved Background Image for Deep Immersion */}
-      {/* @ts-ignore */}
       <a-curvedimage
         src="/assets/environments/depression_bg.jpg"
         height="8"
@@ -384,7 +383,6 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
         material="shader: flat; side: double; opacity: 0.9"
       ></a-curvedimage>
 
-      {/* @ts-ignore */}
       <a-curvedimage
         src="/assets/environments/depression_bg.jpg"
         height="8"
@@ -397,7 +395,6 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
 
       {/* Floating Sparkles for Positive Activation */}
       {Array.from({ length: intensity * 20 }).map((_, i) => (
-        /* @ts-ignore */
         <a-sphere
           key={i}
           position={`${(Math.random() - 0.5) * 15} ${1 + Math.random() * 4} ${(Math.random() - 0.5) * 15}`}
@@ -409,9 +406,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
       ))}
 
       <a-entity position="0 0.05 -5">
-        {/* @ts-ignore */}
         <a-circle radius="1" rotation="-90 0 0" color="#FFF" material="opacity: 0.2; transparent: true"></a-circle>
-        {/* @ts-ignore */}
         <a-text value="Foco na Luz" align="center" position="0 1.5 0" scale="0.8 0.8 0.8" color="#FFF" font="exo2bold"></a-text>
       </a-entity>
     </>
@@ -471,7 +466,6 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
     <div ref={sceneRef} className="relative w-full h-screen bg-slate-900 overflow-hidden">
       {/* A-Frame Scene */}
       <div ref={containerRef} className="absolute inset-0">
-        {/* @ts-ignore */}
         <a-scene
           embedded
           vr-mode-ui="enabled: true"
@@ -479,16 +473,12 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
           // @ts-ignore
           ref={(ref) => { if (ref) sceneRef.current = ref; }}
         >
-          {/* @ts-ignore */}
           <a-assets>
             <img id="depression-bg" src="/assets/environments/depression_bg.jpg" />
           </a-assets>
 
-          {/* @ts-ignore */}
           <a-sky color={getSkyColor()}></a-sky>
-          {/* @ts-ignore */}
           <a-light type="ambient" color="#BBB" intensity={0.4 + intensity * 0.2}></a-light>
-          {/* @ts-ignore */}
           <a-light type="directional" color="#FFF" intensity={0.6 + intensity * 0.2} position={`${-3 + intensity} 8 5`}></a-light>
 
           {/* Environments */}
@@ -497,25 +487,18 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
           {currentEnvironment === 'burnout' && renderBurnout()}
 
           {/* Immersive HUD (3D) */}
-          {/* @ts-ignore */}
           <a-entity position="0 2.5 -4" rotation="10 0 0">
-            {/* @ts-ignore */}
             <a-plane width="3" height="0.8" color="#000" material="opacity: 0.6; transparent: true" radius="0.1"></a-plane>
-            {/* @ts-ignore */}
             <a-text value={envInfo.name.toUpperCase()} align="center" position="0 0.15 0.01" scale="0.6 0.6 0.6" color="#FFF"></a-text>
-            {/* @ts-ignore */}
             <a-text value="Status: Sincronizado" align="center" position="0 -0.15 0.01" scale="0.4 0.4 0.4" color="#10B981"></a-text>
           </a-entity>
 
           {/* Comfort Check Icon in 3D */}
-          {/* @ts-ignore */}
           <a-entity position="0 2 -3">
-            {/* @ts-ignore */}
             <a-sphere
               radius="0.3"
               color={comfortStatus === 'comfortable' ? '#10B981' : '#F43F5E'}
             ></a-sphere>
-            {/* @ts-ignore */}
             <a-text
               value="Olhe para confirmar conforto"
               align="center"
@@ -526,11 +509,8 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
           </a-entity>
 
           {/* Camera & Optimized Cursor */}
-          {/* @ts-ignore */}
           <a-entity position="0 1.6 0">
-            {/* @ts-ignore */}
             <a-camera ref={cameraRef} look-controls="enabled: true" wasd-controls="enabled: false">
-              {/* @ts-ignore */}
               <a-entity
                 ref={reticleEntityRef}
                 cursor="fuse: true; fuseTimeout: 2000"
