@@ -373,6 +373,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
       <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#1a1a1a"></a-plane>
 
       {/* Curved Background Image for Deep Immersion */}
+      {/* @ts-ignore */}
       <a-curvedimage
         src="/assets/environments/depression_bg.jpg"
         height="8"
@@ -383,6 +384,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
         material="shader: flat; side: double; opacity: 0.9"
       ></a-curvedimage>
 
+      {/* @ts-ignore */}
       <a-curvedimage
         src="/assets/environments/depression_bg.jpg"
         height="8"
@@ -395,6 +397,7 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
 
       {/* Floating Sparkles for Positive Activation */}
       {Array.from({ length: intensity * 20 }).map((_, i) => (
+        /* @ts-ignore */
         <a-sphere
           key={i}
           position={`${(Math.random() - 0.5) * 15} ${1 + Math.random() * 4} ${(Math.random() - 0.5) * 15}`}
@@ -406,7 +409,9 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
       ))}
 
       <a-entity position="0 0.05 -5">
+        {/* @ts-ignore */}
         <a-circle radius="1" rotation="-90 0 0" color="#FFF" material="opacity: 0.2; transparent: true"></a-circle>
+        {/* @ts-ignore */}
         <a-text value="Foco na Luz" align="center" position="0 1.5 0" scale="0.8 0.8 0.8" color="#FFF" font="exo2bold"></a-text>
       </a-entity>
     </>
