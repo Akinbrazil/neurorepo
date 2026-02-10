@@ -6,12 +6,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  Brain, 
-  Headset, 
-  Shield, 
-  Users, 
-  Activity, 
+import {
+  Brain,
+  Headset,
+  Shield,
+  Users,
+  Activity,
   Clock,
   CheckCircle,
   ArrowRight,
@@ -25,15 +25,12 @@ import {
   Phone,
   Mail,
   MapPin,
-  Menu,
-  X,
   Mic
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const { setCurrentView } = useAuth();
   const [showDemoModal, setShowDemoModal] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const features = [
     {
@@ -67,7 +64,7 @@ const LandingPage: React.FC = () => {
     {
       step: 2,
       title: 'Sessões de Imersão',
-      description: 'Sessões semanais de 5-10 minutos em ambientes VR calmantes (Floresta ou Sala de Aula).' 
+      description: 'Sessões semanais de 5-10 minutos em ambientes VR calmantes (Floresta ou Sala de Aula).'
     },
     {
       step: 3,
@@ -175,100 +172,13 @@ const LandingPage: React.FC = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-    setMobileMenuOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
-                NeuroScope VR
-              </span>
-            </div>
-            
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-6">
-              <button onClick={() => scrollToSection('como-funciona')} className="text-sm text-slate-600 hover:text-slate-900">
-                Como Funciona
-              </button>
-              <button onClick={() => scrollToSection('para-empresas')} className="text-sm text-slate-600 hover:text-slate-900">
-                Para Empresas
-              </button>
-              <button onClick={() => scrollToSection('para-psicologos')} className="text-sm text-slate-600 hover:text-slate-900">
-                Para Psicólogos
-              </button>
-              <button onClick={() => scrollToSection('programa')} className="text-sm text-slate-600 hover:text-slate-900">
-                Programa
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                onClick={() => setCurrentView('login')}
-                className="hidden sm:flex text-slate-600 hover:text-slate-900"
-              >
-                Entrar
-              </Button>
-              <Button
-                onClick={() => setShowDemoModal(true)}
-                className="hidden sm:flex bg-gradient-to-r from-teal-500 to-purple-600 hover:from-teal-600 hover:to-purple-700 text-white"
-              >
-                Agendar Demo
-              </Button>
-              
-              {/* Mobile menu button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </Button>
-            </div>
-          </div>
-          
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-slate-200">
-              <div className="flex flex-col gap-3">
-                <button onClick={() => scrollToSection('como-funciona')} className="text-left py-2 text-slate-600">
-                  Como Funciona
-                </button>
-                <button onClick={() => scrollToSection('para-empresas')} className="text-left py-2 text-slate-600">
-                  Para Empresas
-                </button>
-                <button onClick={() => scrollToSection('para-psicologos')} className="text-left py-2 text-slate-600">
-                  Para Psicólogos
-                </button>
-                <button onClick={() => scrollToSection('programa')} className="text-left py-2 text-slate-600">
-                  Programa
-                </button>
-                <Button
-                  onClick={() => {
-                    setShowDemoModal(true);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full bg-gradient-to-r from-teal-500 to-purple-600"
-                >
-                  Agendar Demo
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+      <section id="home" className="pt-20 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -283,8 +193,8 @@ const LandingPage: React.FC = () => {
                 </span>
               </h1>
               <p className="text-xl text-slate-600 leading-relaxed">
-                NeuroScope VR é uma plataforma completa de realidade virtual para 
-                avaliação neuropsicológica e programas de bem-estar corporativo. 
+                NeuroScope VR é uma plataforma completa de realidade virtual para
+                avaliação neuropsicológica e programas de bem-estar corporativo.
                 Experiência imersiva, controle clínico em tempo real e resultados mensuráveis.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -397,8 +307,8 @@ const LandingPage: React.FC = () => {
                 Bem-Estar Corporativo com Resultados Mensuráveis
               </h2>
               <p className="text-lg text-slate-600 mb-8">
-                Ofereça aos seus colaboradores uma solução inovadora de saúde mental 
-                baseada em evidências científicas. Reduza o absenteísmo e aumente a 
+                Ofereça aos seus colaboradores uma solução inovadora de saúde mental
+                baseada em evidências científicas. Reduza o absenteísmo e aumente a
                 produtividade com sessões de apenas 5-10 minutos por semana.
               </p>
               <div className="space-y-4">
@@ -414,7 +324,7 @@ const LandingPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <Button 
+              <Button
                 className="mt-8 bg-gradient-to-r from-teal-500 to-purple-600"
                 onClick={() => setShowDemoModal(true)}
               >
@@ -518,8 +428,8 @@ const LandingPage: React.FC = () => {
                 Uma Ferramenta Clínica Poderosa
               </h2>
               <p className="text-lg text-slate-600 mb-8">
-                Integre a realidade virtual à sua prática clínica. Controle o ambiente 
-                do paciente em tempo real, monitore o conforto e acompanhe a evolução 
+                Integre a realidade virtual à sua prática clínica. Controle o ambiente
+                do paciente em tempo real, monitore o conforto e acompanhe a evolução
                 com dados objetivos.
               </p>
               <div className="space-y-4">
@@ -535,7 +445,7 @@ const LandingPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <Button 
+              <Button
                 className="mt-8 bg-gradient-to-r from-purple-500 to-teal-500"
                 onClick={() => setCurrentView('login')}
               >
@@ -555,7 +465,7 @@ const LandingPage: React.FC = () => {
               Por que escolher o NeuroScope VR?
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Nossa plataforma combina tecnologia de ponta com rigor clínico para oferecer 
+              Nossa plataforma combina tecnologia de ponta com rigor clínico para oferecer
               a melhor experiência terapêutica imersiva disponível.
             </p>
           </div>
@@ -581,7 +491,7 @@ const LandingPage: React.FC = () => {
               Programa de 8 Semanas
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Um programa estruturado e progressivo, desenvolvido por especialistas 
+              Um programa estruturado e progressivo, desenvolvido por especialistas
               em psicologia e neurociência para maximizar resultados.
             </p>
           </div>
@@ -613,7 +523,7 @@ const LandingPage: React.FC = () => {
                 Resultados Comprovados
               </h2>
               <p className="text-lg text-slate-600 mb-8">
-                Estudos clínicos demonstram a eficácia da terapia imersiva VR na redução 
+                Estudos clínicos demonstram a eficácia da terapia imersiva VR na redução
                 de sintomas de ansiedade, estresse e depressão.
               </p>
               <ul className="space-y-4">
@@ -677,6 +587,46 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Sobre Nós Section */}
+      <section id="sobre" className="py-20 bg-slate-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-bold mb-6 italic">Nossa Missão</h2>
+              <p className="text-lg text-slate-300 mb-6">
+                Fundada com o objetivo de democratizar o acesso à terapia de última geração,
+                a NeuroScope VR utiliza inteligência de dados e realidade virtual para
+                transformar a forma como tratamos ansiedade e estresse.
+              </p>
+              <p className="text-lg text-slate-300">
+                Acreditamos que a tecnologia, quando supervisionada por profissionais qualificados,
+                é a chave para uma saúde mental resiliente no século XXI.
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-teal-500/20 to-purple-600/20 rounded-3xl p-8 border border-white/10">
+              <div className="grid grid-cols-2 gap-6 text-center">
+                <div>
+                  <div className="text-4xl font-bold text-teal-400 mb-2">500+</div>
+                  <div className="text-sm text-slate-400">Pacientes Atendidos</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-bold text-purple-400 mb-2">200+</div>
+                  <div className="text-sm text-slate-400">Terapeutas Ativos</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-bold text-teal-400 mb-2">94%</div>
+                  <div className="text-sm text-slate-400">Taxa de Satisfação</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-bold text-purple-400 mb-2">40%</div>
+                  <div className="text-sm text-slate-400">Redução de Ansiedade</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Safety Section */}
       <section className="py-20 bg-amber-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -696,7 +646,7 @@ const LandingPage: React.FC = () => {
                       Supervisão Humana Permanente
                     </h3>
                     <p className="text-slate-600 text-sm">
-                      O terapeuta mantém controle total do ambiente VR durante toda a sessão, 
+                      O terapeuta mantém controle total do ambiente VR durante toda a sessão,
                       podendo ajustar a intensidade e intervir imediatamente quando necessário.
                     </p>
                   </div>
@@ -706,7 +656,7 @@ const LandingPage: React.FC = () => {
                       Verificação de Conforto
                     </h3>
                     <p className="text-slate-600 text-sm">
-                      Sistema de gaze tracking permite que o paciente sinalize conforto 
+                      Sistema de gaze tracking permite que o paciente sinalize conforto
                       a qualquer momento, com feedback imediato no dashboard do terapeuta.
                     </p>
                   </div>
@@ -716,7 +666,7 @@ const LandingPage: React.FC = () => {
                       Sem Diagnósticos Automáticos
                     </h3>
                     <p className="text-slate-600 text-sm">
-                      A plataforma é uma ferramenta de apoio clínico. Todos os diagnósticos 
+                      A plataforma é uma ferramenta de apoio clínico. Todos os diagnósticos
                       devem ser realizados por profissionais qualificados e registrados no CRP.
                     </p>
                   </div>
@@ -726,7 +676,7 @@ const LandingPage: React.FC = () => {
                       Privacidade e LGPD
                     </h3>
                     <p className="text-slate-600 text-sm">
-                      Todos os dados dos pacientes são criptografados e armazenados em 
+                      Todos os dados dos pacientes são criptografados e armazenados em
                       conformidade com a Lei Geral de Proteção de Dados (LGPD).
                     </p>
                   </div>
@@ -738,13 +688,13 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-teal-600 to-purple-700">
+      <section id="contato" className="py-20 bg-gradient-to-br from-teal-600 to-purple-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
             Pronto para transformar sua prática clínica?
           </h2>
           <p className="text-xl text-white/80 mb-8">
-            Junte-se a centenas de psicólogos que já utilizam o NeuroScope VR 
+            Junte-se a centenas de psicólogos que já utilizam o NeuroScope VR
             para oferecer terapia imersiva de última geração.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
@@ -782,7 +732,7 @@ const LandingPage: React.FC = () => {
                 <span className="text-xl font-bold text-white">NeuroScope VR</span>
               </div>
               <p className="text-sm">
-                Plataforma de realidade virtual para avaliação neuropsicológica 
+                Plataforma de realidade virtual para avaliação neuropsicológica
                 e bem-estar corporativo.
               </p>
             </div>
@@ -825,7 +775,7 @@ const LandingPage: React.FC = () => {
           <div className="border-t border-slate-800 pt-8 text-center text-sm">
             <p>© 2024 NeuroScope VR. Todos os direitos reservados.</p>
             <p className="mt-2">
-              <span className="text-amber-400">⚠️</span> Este é um protótipo de demonstração. 
+              <span className="text-amber-400">⚠️</span> Este é um protótipo de demonstração.
               Não utilize para tratamento real sem validação clínica apropriada.
             </p>
           </div>
@@ -863,7 +813,7 @@ const LandingPage: React.FC = () => {
                 <option value="outro">Outro</option>
               </select>
             </div>
-            <Button 
+            <Button
               className="w-full bg-gradient-to-r from-teal-500 to-purple-600"
               onClick={() => {
                 setShowDemoModal(false);
@@ -873,7 +823,7 @@ const LandingPage: React.FC = () => {
               <Calendar className="w-4 h-4 mr-2" />
               Solicitar Demonstração
             </Button>
-            
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200" />
@@ -882,8 +832,8 @@ const LandingPage: React.FC = () => {
                 <span className="bg-white px-2 text-slate-500">ou</span>
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               variant="outline"
               className="w-full"
               onClick={() => {

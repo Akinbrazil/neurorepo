@@ -11,6 +11,8 @@ import PatientRegister from '@/sections/PatientRegister';
 import DASS21Form from '@/sections/DASS21Form';
 import TherapistDemo from '@/sections/TherapistDemo';
 import PatientDemo from '@/sections/PatientDemo';
+import AdminCRM from '@/sections/AdminCRM';
+import Navbar from '@/components/Navbar';
 import { Loader2 } from 'lucide-react';
 import './App.css';
 
@@ -57,37 +59,100 @@ const AppContent: React.FC = () => {
   // Render current view
   switch (currentView) {
     case 'landing':
-      return <LandingPage />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <LandingPage />
+        </div>
+      );
 
     case 'login':
-      return <LoginPage />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <LoginPage />
+        </div>
+      );
 
     case 'dashboard':
-      return <Dashboard />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <Dashboard />
+        </div>
+      );
 
     case 'session-control':
-      return <SessionControl />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <SessionControl />
+        </div>
+      );
 
     case 'vr-environment':
-      return <VREnvironment />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <VREnvironment />
+        </div>
+      );
 
     case 'patient-register':
-      return <PatientRegister />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <PatientRegister />
+        </div>
+      );
 
     case 'dass21-form':
-      return <DASS21Form />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <DASS21Form />
+        </div>
+      );
 
     case 'therapist-demo':
-      return <TherapistDemo />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <TherapistDemo />
+        </div>
+      );
 
     case 'patient-demo':
-      return <PatientDemo />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <PatientDemo />
+        </div>
+      );
 
     case 'vr-environments':
-      return <VREnvironments />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <VREnvironments />
+        </div>
+      );
+
+    case 'admin-crm':
+      return (
+        <div className="pt-16 min-h-screen bg-slate-50">
+          <Navbar />
+          <AdminCRM />
+        </div>
+      );
 
     default:
-      return <LandingPage />;
+      return (
+        <div className="pt-16 min-h-screen">
+          <Navbar />
+          <LandingPage />
+        </div>
+      );
   }
 };
 

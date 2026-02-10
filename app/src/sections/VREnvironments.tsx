@@ -1,5 +1,6 @@
 // NeuroScope VR - Clinical VR Environments (3 Specialized Environments)
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -11,6 +12,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Headset,
+  Activity,
   Mic,
   Heart,
   Wind,
@@ -180,12 +182,72 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
   onEnvironmentChange,
   onComfortCheck,
 }) => {
+  const { role, setCurrentView } = useAuth();
   const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>(initialEnvironment);
   const [intensity, setIntensity] = useState<1 | 2 | 3>(initialIntensity);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMicActive, setIsMicActive] = useState(false);
   const [natureVolume, setNatureVolume] = useState(0.6);
   const [isAudioDucked, setIsAudioDucked] = useState(false);
+
+  // Sandbox state for guests
+  const [isSandboxExpired, setIsSandboxExpired] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
+
+  // Sandbox timer for guests
+  useEffect(() => {
+    if (role === 'guest') {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setIsSandboxExpired(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [role]);
+
+  if (isSandboxExpired) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-white p-8 animate-in fade-in duration-700">
+        <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-purple-600 rounded-3xl flex items-center justify-center mb-6 shadow-2xl">
+          <Activity className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold mb-4">Sessão Sandbox Encerrada</h2>
+        <p className="text-slate-400 mb-2 max-w-sm text-center">
+          Obrigado por experimentar o NeuroScope VR!
+        </p>
+        <p className="text-teal-400 font-mono text-sm mb-8">
+          Tempo expirado: {timeLeft}s
+        </p>
+        <div className="flex flex-col gap-4 w-full max-w-xs">
+          <Button
+            className="bg-gradient-to-r from-teal-500 to-purple-600 py-6 text-lg font-bold shadow-lg transition-all active:scale-95"
+            onClick={() => {
+              setCurrentView('landing');
+              setTimeout(() => {
+                const el = document.getElementById('contato');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}
+          >
+            Ver Planos e Preços
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-slate-400 hover:text-white"
+            onClick={() => setCurrentView('landing')}
+          >
+            Voltar ao Início
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Comfort check state
   const [isGazing, setIsGazing] = useState(false);

@@ -1,5 +1,8 @@
 // NeuroScope VR - Type Definitions
 
+// User Roles
+export type UserRole = 'guest' | 'therapist' | 'company' | 'admin';
+
 // User/Therapist Profile
 export interface Profile {
   id: string;
@@ -8,6 +11,7 @@ export interface Profile {
   crp_number?: string;
   phone?: string;
   avatar_url?: string;
+  role: UserRole;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -131,7 +135,7 @@ export interface PatientWithDASS21 extends Patient {
 }
 
 // Application State
-export type AppView = 'landing' | 'login' | 'dashboard' | 'session-control' | 'vr-environment' | 'patient-register' | 'dass21-form' | 'therapist-demo' | 'patient-demo' | 'vr-environments';
+export type AppView = 'landing' | 'login' | 'dashboard' | 'session-control' | 'vr-environment' | 'patient-register' | 'dass21-form' | 'therapist-demo' | 'patient-demo' | 'vr-environments' | 'admin-crm';
 
 export interface AppState {
   currentView: AppView;

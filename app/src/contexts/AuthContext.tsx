@@ -1,13 +1,14 @@
 // NeuroScope VR - Authentication Context
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, getCurrentUser, getProfile } from '@/lib/supabase';
-import type { Profile, AppView } from '@/types';
+import type { Profile, AppView, UserRole } from '@/types';
 
 interface AuthContextType {
   user: Profile | null;
   isLoading: boolean;
   error: string | null;
   currentView: AppView;
+  role: UserRole | null;
   setCurrentView: (view: AppView) => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -22,6 +23,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<AppView>('landing');
+  const [role, setRole] = useState<UserRole | null>(null);
+
+  // Helper to log session metadata
+  const logSessionMetadata = async (userId: string) => {
+    try {
+      // In a real browser environment, we might use a service to get IP
+      // Here we'll simulate or capture what we can from navigator
+      const metadata = {
+        user_id: userId,
+        device_type: navigator.userAgent.includes('Mobi') ? 'mobile' : 'desktop',
+        platform: navigator.platform,
+        language: navigator.language,
+        timestamp: new Date().toISOString()
+      };
+
+      console.log("Logging session metadata:", metadata);
+
+      // In a real Supabase setup, we'd insert into a 'session_logs' table
+      // await supabase.from('session_logs').insert([metadata]);
+    } catch (err) {
+      console.warn("Failed to log session metadata", err);
+    }
+  };
 
   // Check for existing session on mount
   useEffect(() => {
@@ -43,7 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setUser(profile);
+        setRole(profile?.role || 'therapist');
         setCurrentView('dashboard');
+        if (authUser.id) logSessionMetadata(authUser.id);
       } catch (err) {
         setError('Erro de autenticação');
       } finally {
@@ -59,9 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (event === 'SIGNED_IN' && session?.user) {
           const { data: profile } = await getProfile(session.user.id);
           setUser(profile);
+          setRole(profile?.role || 'therapist');
           setCurrentView(prev => (prev === 'landing' || prev === 'login') ? 'dashboard' : prev);
+          logSessionMetadata(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          setRole(null);
           setCurrentView('landing');
         }
       }
@@ -111,6 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut();
       setUser(null);
+      setRole(null);
       setCurrentView('landing');
     } catch (err: any) {
       setError(err.message);
@@ -157,6 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         error,
         currentView,
+        role,
         setCurrentView,
         login,
         logout,
