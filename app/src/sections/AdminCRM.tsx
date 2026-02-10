@@ -10,40 +10,43 @@ import {
     Clock,
     MoreVertical,
     Search,
-    ArrowUpRight,
-    ArrowDownRight
+    ArrowUpRight
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { getAdminMetrics, Database } from '@/lib/db-simulation';
+import type { Therapist } from '@/lib/db-simulation';
 
 const AdminCRM: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const metrics = getAdminMetrics();
 
-    // Simulated data for the CEO Dashboard
+    // Simulated data for the CEO Dashboard based on the new simulation
     const stats = [
-        { label: 'Total de Terapeutas', value: '124', icon: Users, trend: '+12%', trendUp: true },
-        { label: 'Sessões Ativas', value: '42', icon: Activity, trend: '+5%', trendUp: true },
-        { label: 'Compliance LGPD', value: '100%', icon: Shield, trend: 'Estável', trendUp: true },
-        { label: 'Uso de Banda (VR)', value: '1.2 TB', icon: Globe, trend: '+18%', trendUp: false },
+        { label: 'Total de Terapeutas', value: metrics.totalTherapists.toString(), icon: Users, trend: 'Global', trendUp: true },
+        { label: 'Pacientes na Base', value: metrics.totalPatients.toString(), icon: Activity, trend: 'Monitorados', trendUp: true },
+        { label: 'Compliance LGPD', value: '100%', icon: Shield, trend: 'Auditado', trendUp: true },
+        { label: 'Distribuição (BR/PT)', value: `${metrics.geo['Brasil'] || 0}/${metrics.geo['Portugal'] || 0}`, icon: Globe, trend: 'Paises', trendUp: true },
     ];
 
-    const recentLogins = [
-        { id: 1, name: 'Dr. Roberto Santos', role: 'Therapist', ip: '191.242.12.42', device: 'Desktop (Chrome)', time: '2 mins ago' },
-        { id: 2, name: 'Ana Carolina (Admin)', role: 'Admin', ip: '187.12.33.109', device: 'Desktop (Edge)', time: '15 mins ago' },
-        { id: 3, name: 'Clínica Bem-Estar', role: 'Company', ip: '201.55.12.8', device: 'Mobile (Safari)', time: '45 mins ago' },
-        { id: 4, name: 'Lucas Ferreira', role: 'Therapist', ip: '177.34.22.11', device: 'Desktop (Chrome)', time: '1 hour ago' },
-        { id: 5, name: 'Juliana Lima', role: 'Therapist', ip: '189.22.90.55', device: 'VR Headset (Oculus)', time: '3 hours ago' },
-    ];
+    const recentLogins = Database.terapeutas.map((t: Therapist, i: number) => ({
+        id: i + 1,
+        name: t.nome,
+        role: t.plano === 'Premium' ? 'Master' : 'Basic',
+        ip: `191.${242 - i}.12.${42 + i}`,
+        device: i % 2 === 0 ? 'Desktop (Chrome)' : 'VR Headset (Quest 3)',
+        time: `${i + 2} mins ago`
+    }));
 
     return (
         <div className="p-8 space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">CRM Administrativo</h1>
-                    <p className="text-slate-500">Visão Geral do CEO - Painel de Controle NeuroScope VR</p>
+                    <h1 className="text-3xl font-bold text-slate-900 italic">Governança CEO</h1>
+                    <p className="text-slate-500">Métricas de Negócio & Distribuição NeuroScope VR</p>
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="outline">Exportar Relatórios</Button>
-                    <Button className="bg-gradient-to-r from-teal-500 to-purple-600">Configurações Master</Button>
+                    <Button variant="outline">Relatório LGPD</Button>
+                    <Button className="bg-gradient-to-r from-teal-500 to-purple-600">Exportar Dados BI</Button>
                 </div>
             </div>
 
@@ -56,9 +59,8 @@ const AdminCRM: React.FC = () => {
                                 <div className="p-2 bg-slate-50 rounded-lg">
                                     <stat.icon className="w-5 h-5 text-teal-600" />
                                 </div>
-                                <div className={`flex items-center text-xs font-medium ${stat.trendUp ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                <div className={`flex items-center text-xs font-medium text-slate-400`}>
                                     {stat.trend}
-                                    {stat.trendUp ? <ArrowUpRight className="w-3 h-3 ml-1" /> : <ArrowDownRight className="w-3 h-3 ml-1" />}
                                 </div>
                             </div>
                             <div className="mt-4">

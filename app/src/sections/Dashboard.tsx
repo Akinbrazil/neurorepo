@@ -20,7 +20,6 @@ import {
   Play,
   FileText,
   Phone,
-  Mail,
   AlertCircle,
   CheckCircle,
   Clock,
@@ -40,117 +39,15 @@ import {
   Bar,
   ReferenceLine
 } from 'recharts';
-import type { PatientWithDASS21, Session } from '@/types';
+import type { Session } from '@/types';
+import { getClinicalDataForTherapist } from '@/lib/db-simulation';
 
 // Mock data for demonstration
-const mockPatients: PatientWithDASS21[] = [
-  {
-    id: '1',
-    therapist_id: 'therapist-1',
-    full_name: 'Ana Carolina Mendes',
-    email: 'ana.mendes@email.com',
-    phone: '(11) 98765-4321',
-    date_of_birth: '1985-03-15',
-    gender: 'feminino',
-    is_active: true,
-    created_at: '2024-01-10T10:00:00Z',
-    updated_at: '2024-01-10T10:00:00Z',
-    depression_score: 16,
-    anxiety_score: 20,
-    stress_score: 28,
-    total_score: 64,
-    depression_severity: 'Moderado',
-    anxiety_severity: 'Moderado',
-    stress_severity: 'Moderado',
-    last_assessment_date: '2024-01-15',
-  },
-  {
-    id: '2',
-    therapist_id: 'therapist-1',
-    full_name: 'Roberto Carlos Silva',
-    email: 'roberto.silva@email.com',
-    phone: '(11) 91234-5678',
-    date_of_birth: '1978-07-22',
-    gender: 'masculino',
-    is_active: true,
-    created_at: '2024-01-05T14:30:00Z',
-    updated_at: '2024-01-05T14:30:00Z',
-    depression_score: 8,
-    anxiety_score: 12,
-    stress_score: 20,
-    total_score: 40,
-    depression_severity: 'Normal',
-    anxiety_severity: 'Leve',
-    stress_severity: 'Moderado',
-    last_assessment_date: '2024-01-20',
-  },
-  {
-    id: '3',
-    therapist_id: 'therapist-1',
-    full_name: 'Juliana Pereira Santos',
-    email: 'juliana.santos@email.com',
-    phone: '(11) 94567-8901',
-    date_of_birth: '1992-11-08',
-    gender: 'feminino',
-    is_active: true,
-    created_at: '2024-01-12T09:15:00Z',
-    updated_at: '2024-01-12T09:15:00Z',
-    depression_score: 28,
-    anxiety_score: 24,
-    stress_score: 36,
-    total_score: 88,
-    depression_severity: 'Grave',
-    anxiety_severity: 'Grave',
-    stress_severity: 'Grave',
-    last_assessment_date: '2024-01-18',
-  },
-  {
-    id: '4',
-    therapist_id: 'therapist-1',
-    full_name: 'Marcos Vinícius Oliveira',
-    email: 'marcos.oliveira@email.com',
-    phone: '(11) 95678-1234',
-    date_of_birth: '1988-05-30',
-    gender: 'masculino',
-    is_active: true,
-    created_at: '2024-01-08T16:45:00Z',
-    updated_at: '2024-01-08T16:45:00Z',
-    depression_score: 12,
-    anxiety_score: 8,
-    stress_score: 16,
-    total_score: 36,
-    depression_severity: 'Leve',
-    anxiety_severity: 'Normal',
-    stress_severity: 'Leve',
-    last_assessment_date: '2024-01-22',
-  },
-];
-
 const mockSessions: Session[] = [
   {
     id: 's1',
-    patient_id: '1',
-    therapist_id: 'therapist-1',
-    session_number: 3,
-    environment_type: 'floresta',
-    duration_minutes: 25,
-    intensity_level: 2,
-    status: 'completed',
-    started_at: '2024-01-25T10:00:00Z',
-    ended_at: '2024-01-25T10:25:00Z',
-    patient_comfort_checks: 5,
-    therapist_notes: 'Paciente respondeu bem ao ambiente. Manteve conforto durante toda a sessão.',
-    patient_feedback: '',
-    created_at: '2024-01-25T10:00:00Z',
-    updated_at: '2024-01-25T10:25:00Z',
-    patient_name: 'Ana Carolina Mendes',
-    patient_email: 'ana.mendes@email.com',
-    patient_phone: '(11) 98765-4321',
-  },
-  {
-    id: 's2',
-    patient_id: '2',
-    therapist_id: 'therapist-1',
+    patient_id: 'P1',
+    therapist_id: 'T1',
     session_number: 5,
     environment_type: 'sala-aula',
     duration_minutes: 30,
@@ -163,9 +60,9 @@ const mockSessions: Session[] = [
     patient_feedback: '',
     created_at: '2024-01-24T14:00:00Z',
     updated_at: '2024-01-24T14:30:00Z',
-    patient_name: 'Roberto Carlos Silva',
-    patient_email: 'roberto.silva@email.com',
-    patient_phone: '(11) 91234-5678',
+    patient_name: 'Carlos Eduardo',
+    patient_email: 'carlos@email.com',
+    patient_phone: '(11) 99988-1122',
   },
   {
     id: 's3',
@@ -206,16 +103,17 @@ const comparisonData = [
 
 const Dashboard: React.FC = () => {
   const { user, logout, setCurrentView } = useAuth();
-  const [patients] = useState<PatientWithDASS21[]>(mockPatients);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Database simulation integration
+  const clinicalData = getClinicalDataForTherapist('T1'); // Simulating Dr. Lucas
+  const [patients] = useState(clinicalData.patients);
   const [sessions] = useState<Session[]>(mockSessions);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState<PatientWithDASS21 | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
   const [showPatientDetails, setShowPatientDetails] = useState(false);
 
-  // Filter patients based on search
-  const filteredPatients = patients.filter(patient =>
-    patient.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    patient.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPatients = patients.filter(p =>
+    p.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Stats
@@ -224,14 +122,13 @@ const Dashboard: React.FC = () => {
   const scheduledSessions = sessions.filter(s => s.status === 'scheduled').length;
   const completedSessions = sessions.filter(s => s.status === 'completed').length;
 
-  const handleViewPatient = (patient: PatientWithDASS21) => {
+  const handleViewPatient = (patient: any) => {
     setSelectedPatient(patient);
     setShowPatientDetails(true);
   };
 
-  const handleStartSession = (patient: PatientWithDASS21) => {
-    // Store selected patient and navigate to session control
-    setSelectedPatient(patient);
+  const handleStartSession = () => {
+    // In a real app, this would set the active patient in AuthContext
     setCurrentView('session-control');
   };
 
@@ -448,8 +345,8 @@ const Dashboard: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   placeholder="Buscar paciente..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -481,31 +378,23 @@ const Dashboard: React.FC = () => {
                           <div className="flex items-center gap-3">
                             <Avatar className="w-10 h-10">
                               <AvatarFallback className="bg-slate-100 text-slate-600">
-                                {patient.full_name.charAt(0)}
+                                {patient.nome.charAt(0)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-slate-900">{patient.full_name}</p>
+                              <p className="font-medium text-slate-900">{patient.nome}</p>
                               <p className="text-sm text-slate-500">
-                                {new Date().getFullYear() - new Date(patient.date_of_birth || '2000-01-01').getFullYear()} anos
+                                {patient.idade} anos
                               </p>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
-                            {patient.email && (
-                              <div className="flex items-center gap-2 text-sm text-slate-600">
-                                <Mail className="w-3 h-3" />
-                                {patient.email}
-                              </div>
-                            )}
-                            {patient.phone && (
-                              <div className="flex items-center gap-2 text-sm text-slate-600">
-                                <Phone className="w-3 h-3" />
-                                {patient.phone}
-                              </div>
-                            )}
+                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                              <Phone className="w-3 h-3" />
+                              {patient.tel}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -550,7 +439,7 @@ const Dashboard: React.FC = () => {
                             </Button>
                             <Button
                               size="sm"
-                              onClick={() => handleStartSession(patient)}
+                              onClick={() => handleStartSession()}
                               className="bg-gradient-to-r from-teal-500 to-purple-600"
                             >
                               <Play className="w-4 h-4 mr-1" />
@@ -607,8 +496,8 @@ const Dashboard: React.FC = () => {
                               <div
                                 key={level}
                                 className={`w-2 h-2 rounded-full ${level <= session.intensity_level
-                                    ? 'bg-purple-500'
-                                    : 'bg-slate-200'
+                                  ? 'bg-purple-500'
+                                  : 'bg-slate-200'
                                   }`}
                               />
                             ))}
@@ -639,18 +528,18 @@ const Dashboard: React.FC = () => {
 
       {/* Patient Details Dialog */}
       <Dialog open={showPatientDetails} onOpenChange={setShowPatientDetails}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <Avatar className="w-12 h-12">
                 <AvatarFallback className="bg-gradient-to-br from-teal-100 to-purple-100 text-teal-700 text-lg">
-                  {selectedPatient?.full_name.charAt(0)}
+                  {selectedPatient?.nome?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p>{selectedPatient?.full_name}</p>
+                <p>{selectedPatient?.nome}</p>
                 <p className="text-sm font-normal text-slate-500">
-                  {selectedPatient?.email}
+                  {selectedPatient?.tel}
                 </p>
               </div>
             </DialogTitle>
@@ -661,15 +550,13 @@ const Dashboard: React.FC = () => {
               {/* Patient Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-slate-500">Telefone</p>
-                  <p className="font-medium">{selectedPatient.phone || 'Não informado'}</p>
+                  <p className="text-sm text-slate-500">Contato</p>
+                  <p className="font-medium">{selectedPatient.tel}</p>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-slate-500">Data de Nascimento</p>
+                  <p className="text-sm text-slate-500">Faixa Etária</p>
                   <p className="font-medium">
-                    {selectedPatient.date_of_birth
-                      ? new Date(selectedPatient.date_of_birth).toLocaleDateString('pt-BR')
-                      : 'Não informado'}
+                    {selectedPatient.idade} anos ({selectedPatient.categoria})
                   </p>
                 </div>
               </div>
@@ -728,7 +615,7 @@ const Dashboard: React.FC = () => {
                   className="flex-1 bg-gradient-to-r from-teal-500 to-purple-600"
                   onClick={() => {
                     setShowPatientDetails(false);
-                    handleStartSession(selectedPatient);
+                    handleStartSession();
                   }}
                 >
                   <Play className="w-4 h-4 mr-2" />

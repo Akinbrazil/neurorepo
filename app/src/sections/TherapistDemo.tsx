@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getClinicalDataForTherapist } from '@/lib/db-simulation';
 
 type ClinicalEnvironment = 'anxiety' | 'depression' | 'burnout';
 type PatientStatus = 'waiting' | 'connected' | 'in-session' | 'completed';
@@ -50,6 +51,10 @@ interface ComfortEvent {
 }
 
 const TherapistDemo: React.FC = () => {
+  // Database simulation integration
+  const clinicalData = getClinicalDataForTherapist('T1'); // Simulating Dr. Lucas
+  const [activePatient] = useState(clinicalData.patients[0]);
+
   // Session state
   const [sessionActive, setSessionActive] = useState(false);
   const [currentEnvironment, setCurrentEnvironment] = useState<ClinicalEnvironment>('anxiety');
@@ -59,7 +64,7 @@ const TherapistDemo: React.FC = () => {
 
   // Patient state
   const [patientStatus, setPatientStatus] = useState<PatientStatus>('waiting');
-  const [patientName] = useState('Paciente Demo');
+  const [patientName] = useState(activePatient.nome);
   const [patientLink, setPatientLink] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
 

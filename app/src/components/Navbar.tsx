@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Brain, Menu, X, ChevronDown, LayoutDashboard, Settings, LogOut, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -33,13 +34,25 @@ const Navbar: React.FC = () => {
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('landing')}>
-                        <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <Brain className="w-6 h-6 text-white" />
+                    <div className="flex items-center gap-2"> {/* Modified this div to include badges */}
+                        {user?.role === 'admin' && (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 font-bold px-3 py-1 animate-pulse">
+                                CEO / SUPER ADMIN
+                            </Badge>
+                        )}
+                        {user?.role === 'therapist' && (
+                            <Badge variant="outline" className="bg-teal-50 text-teal-600 border-teal-200 font-bold px-3 py-1">
+                                MASTER / TERAPEUTA
+                            </Badge>
+                        )}
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('landing')}>
+                            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                <Brain className="w-6 h-6 text-white" />
+                            </div>
+                            <span className="text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
+                                NeuroScope VR
+                            </span>
                         </div>
-                        <span className="text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
-                            NeuroScope VR
-                        </span>
                     </div>
 
                     {/* Desktop Navigation */}
@@ -82,9 +95,13 @@ const Navbar: React.FC = () => {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-56">
                                     <div className="flex items-center justify-start gap-2 p-2">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{user.full_name}</p>
-                                            <p className="text-xs leading-none text-muted-foreground">{role?.toUpperCase()}</p>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-semibold text-slate-900 leading-tight">
+                                                {user?.full_name || 'Dr. Usuário'}
+                                            </span>
+                                            <span className="text-[10px] uppercase font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100 mt-0.5">
+                                                {user?.role === 'admin' ? 'CEO Access' : 'Master Profile'}
+                                            </span>
                                         </div>
                                     </div>
                                     <DropdownMenuSeparator />
