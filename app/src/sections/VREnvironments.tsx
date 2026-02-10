@@ -370,13 +370,44 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
 
   const renderDepression = () => (
     <>
-      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#8BC34A"></a-plane>
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#1a1a1a"></a-plane>
+
+      {/* Curved Background Image for Deep Immersion */}
+      <a-curvedimage
+        src="/assets/environments/depression_bg.jpg"
+        height="8"
+        radius="12"
+        theta-length="180"
+        rotation="0 90 0"
+        position="0 4 0"
+        material="shader: flat; side: double; opacity: 0.9"
+      ></a-curvedimage>
+
+      <a-curvedimage
+        src="/assets/environments/depression_bg.jpg"
+        height="8"
+        radius="12"
+        theta-length="180"
+        rotation="0 270 0"
+        position="0 4 0"
+        material="shader: flat; side: double; opacity: 0.9"
+      ></a-curvedimage>
+
+      {/* Floating Sparkles for Positive Activation */}
       {Array.from({ length: intensity * 20 }).map((_, i) => (
-        <a-sphere key={i} position={`${(Math.random() - 0.5) * 30} ${0.2 + Math.random() * 0.5} ${(Math.random() - 0.5) * 30}`} radius="0.3" color={`hsl(${Math.random() * 360}, 80%, 60%)`}></a-sphere>
+        <a-sphere
+          key={i}
+          position={`${(Math.random() - 0.5) * 15} ${1 + Math.random() * 4} ${(Math.random() - 0.5) * 15}`}
+          radius="0.05"
+          color="#FFF9C4"
+          animation="property: position; dir: alternate; dur: 3000; easing: easeInOutSine; loop: true; to: ${(Math.random() - 0.5) * 15} ${1.5 + Math.random() * 4} ${(Math.random() - 0.5) * 15}"
+          material="emissive: #FFF9C4; emissiveIntensity: 2"
+        ></a-sphere>
       ))}
-      <a-entity position="0 0 -10">
-        <a-cylinder radius="2" height="0.1" color="#FFFFFF"></a-cylinder>
-        <a-text value="Ativacao Positiva" align="center" position="0 2 0" color="#333"></a-text>
+
+      <a-entity position="0 0.05 -5">
+        <a-circle radius="1" rotation="-90 0 0" color="#FFF" material="opacity: 0.2; transparent: true"></a-circle>
+        <a-text value="Foco na Luz" align="center" position="0 1.5 0" scale="0.8 0.8 0.8" color="#FFF" font="exo2bold"></a-text>
       </a-entity>
     </>
   );
@@ -443,6 +474,11 @@ const VREnvironments: React.FC<VREnvironmentsProps> = ({
           // @ts-ignore
           ref={(ref) => { if (ref) sceneRef.current = ref; }}
         >
+          {/* @ts-ignore */}
+          <a-assets>
+            <img id="depression-bg" src="/assets/environments/depression_bg.jpg" />
+          </a-assets>
+
           {/* @ts-ignore */}
           <a-sky color={getSkyColor()}></a-sky>
           {/* @ts-ignore */}
