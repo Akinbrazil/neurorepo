@@ -1,5 +1,5 @@
 // NeuroScope VR - Therapist Demo Mode (Demonstração do Terapeuta)
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -20,7 +20,6 @@ import {
   Wind,
   Sun,
   Sparkles,
-  ArrowRight,
   Play,
   Square,
   BarChart3,
@@ -162,6 +161,55 @@ const TherapistDemo: React.FC = () => {
   const toggleMute = () => {
     setIsMuted(prev => !prev);
   };
+
+  // WebRTC & Monitoring Logic
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+
+  const setupWebRTC = useCallback(() => {
+    if (peerConnection.current) return;
+
+    peerConnection.current = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+
+    peerConnection.current.ontrack = (event: RTCTrackEvent) => {
+      if (remoteVideoRef.current && event.streams[0]) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    // Signaling listener
+    const channel = supabase.channel('session:demo');
+    channel.on('broadcast', { event: 'webrtc-signal' }, async ({ payload }: { payload: any }) => {
+      if (!peerConnection.current) return;
+
+      if (payload.type === 'offer') {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
+        const answer = await peerConnection.current.createAnswer();
+        await peerConnection.current.setLocalDescription(answer);
+        channel.send({ type: 'broadcast', event: 'webrtc-signal', payload: answer });
+      } else if (payload.type === 'ice-candidate' && payload.candidate) {
+        await peerConnection.current.addIceCandidate(new RTCIceCandidate(payload.candidate));
+      }
+    }).subscribe();
+
+    peerConnection.current.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
+      if (event.candidate) {
+        channel.send({
+          type: 'broadcast',
+          event: 'webrtc-signal',
+          payload: { type: 'ice-candidate', candidate: event.candidate }
+        });
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (sessionActive && patientStatus === 'connected') {
+      setupWebRTC();
+    }
+  }, [sessionActive, patientStatus, setupWebRTC]);
 
   // Switch environment
   const switchEnvironment = (env: ClinicalEnvironment) => {
@@ -528,14 +576,6 @@ const TherapistDemo: React.FC = () => {
                         </div>
                       </div>
 
-                      <Button
-                        className="w-full"
-                        variant="outline"
-                        onClick={() => window.open(patientLink, '_blank')}
-                      >
-                        <ArrowRight className="w-4 h-4 mr-2" />
-                        Abrir Visão do Paciente
-                      </Button>
                     </>
                   )}
                 </div>

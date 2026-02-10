@@ -1,5 +1,5 @@
 // NeuroScope VR - Patient Demo Mode (Demonstração do Paciente)
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ import {
   WifiOff,
   Mic
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import VREnvironments from './VREnvironments';
 
 type ClinicalEnvironment = 'anxiety' | 'depression' | 'burnout';
@@ -28,6 +29,16 @@ const PatientDemo: React.FC = () => {
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+
+  // Load persisted permissions
+  useEffect(() => {
+    const savedMic = localStorage.getItem('neuroscope_mic_perm');
+    const savedScreen = localStorage.getItem('neuroscope_screen_perm');
+
+    if (savedMic === 'true') setHasMicPermission(true);
+    if (savedScreen) console.log("Permissão de tela já concedida anteriormente.");
+  }, []);
 
   // Parse URL parameters
   useEffect(() => {
@@ -95,10 +106,74 @@ const PatientDemo: React.FC = () => {
     setCurrentEnvironment(env);
   };
 
-  // Start VR session
-  const startVR = () => {
-    setIsVRActive(true);
-    setShowInstructions(false);
+  // Start VR session and capture screen/audio
+  const startVR = async () => {
+    try {
+      // Capture Screen for Therapist
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: 15 },
+        audio: false
+      });
+
+      // Capture Mic
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      // Combine streams
+      const combinedStream = new MediaStream([
+        ...screenStream.getVideoTracks(),
+        ...micStream.getAudioTracks()
+      ]);
+
+      console.log("Fluxo de compartilhamento iniciado:", combinedStream.id);
+      localStorage.setItem('neuroscope_screen_perm', 'true');
+      localStorage.setItem('neuroscope_mic_perm', 'true');
+
+      setupWebRTC(combinedStream);
+
+      setIsVRActive(true);
+      setShowInstructions(false);
+    } catch (err) {
+      console.error("Failed to capture media:", err);
+      alert("Para monitoramento clínico, precisamos do compartilhamento de tela e áudio.");
+    }
+  };
+
+  const setupWebRTC = (stream: MediaStream) => {
+    peerConnection.current = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+
+    stream.getTracks().forEach(track => {
+      peerConnection.current?.addTrack(track, stream);
+    });
+
+    const channel = supabase.channel('session:demo');
+
+    peerConnection.current.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
+      if (event.candidate) {
+        channel.send({
+          type: 'broadcast',
+          event: 'webrtc-signal',
+          payload: { type: 'ice-candidate', candidate: event.candidate }
+        });
+      }
+    };
+
+    // Negotiation
+    peerConnection.current.onnegotiationneeded = async () => {
+      const offer = await peerConnection.current?.createOffer();
+      await peerConnection.current?.setLocalDescription(offer);
+      channel.send({ type: 'broadcast', event: 'webrtc-signal', payload: offer });
+    };
+
+    // Signaling listener for answer
+    channel.on('broadcast', { event: 'webrtc-signal' }, async ({ payload }: { payload: any }) => {
+      if (payload.type === 'answer') {
+        await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(payload));
+      } else if (payload.type === 'ice-candidate' && payload.candidate) {
+        await peerConnection.current?.addIceCandidate(new RTCIceCandidate(payload.candidate));
+      }
+    }).subscribe();
   };
 
   // Exit VR session
