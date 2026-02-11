@@ -25,7 +25,8 @@ import {
   Clock,
   TrendingDown,
   BarChart3,
-  Headset
+  Headset,
+  Monitor
 } from 'lucide-react';
 import {
   LineChart,
@@ -325,20 +326,37 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Live Session Monitor (Vision A) */}
-        {liveSessions.length > 0 && (
-          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 shadow-sm animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <div className="relative">
                   <Activity className="w-5 h-5 text-blue-600" />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+                  {liveSessions.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full animate-ping" />}
                 </div>
                 Monitoramento ao Vivo (Telemetria WebXR)
               </h3>
-              <Badge variant="outline" className="bg-blue-600 text-white border-none px-3 py-1 animate-pulse">
-                {liveSessions.length} {liveSessions.length === 1 ? 'SESSÃO ATIVA' : 'SESSÕES ATIVAS'}
-              </Badge>
+              <div className="flex items-center gap-3">
+                {liveSessions.length > 0 ? (
+                  <Badge variant="outline" className="bg-blue-600 text-white border-none px-3 py-1 animate-pulse">
+                    {liveSessions.length} {liveSessions.length === 1 ? 'SESSÃO ATIVA' : 'SESSÕES ATIVAS'}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-slate-200 text-slate-600 border-none px-3 py-1">
+                    NENHUMA SESSÃO ATIVA
+                  </Badge>
+                )}
+                <Button 
+                  size="sm" 
+                  onClick={() => setCurrentView('session-cockpit')}
+                  className="bg-gradient-to-r from-teal-500 to-purple-600"
+                >
+                  <Monitor className="w-4 h-4 mr-2" />
+                  Abrir Cockpit
+                </Button>
+              </div>
             </div>
+            
+            {liveSessions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {liveSessions.map((session) => {
                 const patientObj = clinicalData.patients.find(p => p.id === session.patientId);
@@ -404,8 +422,34 @@ const Dashboard: React.FC = () => {
                 );
               })}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-12 bg-white/50 rounded-xl border border-dashed border-blue-200">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Monitor className="w-8 h-8 text-blue-400" />
+              </div>
+              <h4 className="text-slate-900 font-semibold mb-2">Nenhuma sessão ativa no momento</h4>
+              <p className="text-slate-500 text-sm mb-4 max-w-md mx-auto">
+                Inicie uma sessão VR com um paciente para visualizar a telemetria em tempo real e monitorar o conforto.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('vr-environments')}
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Testar Ambiente VR
+                </Button>
+                <Button 
+                  onClick={() => setCurrentView('session-cockpit')}
+                  className="bg-gradient-to-r from-teal-500 to-purple-600"
+                >
+                  <Monitor className="w-4 h-4 mr-2" />
+                  Abrir Cockpit de Controle
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Charts Section */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">

@@ -8,9 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import {
     Mic, MicOff, Volume2, VolumeX,
     Activity, Eye, Headset, AlertCircle, CheckCircle,
-    Maximize2, Minimize2
+    Maximize2, Minimize2, ArrowLeft
 } from 'lucide-react';
 import { BusinessEngine } from '@/lib/db-simulation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SessionCockpitProps {
     patientId: string;
@@ -23,6 +24,7 @@ const SessionCockpit: React.FC<SessionCockpitProps> = ({
     therapistId,
     sessionId
 }) => {
+    const { setCurrentView } = useAuth();
     const [intensity, setIntensity] = useState(1);
     const [isMicActive, setIsMicActive] = useState(false);
     const [isListening, setIsListening] = useState(true);
@@ -112,6 +114,14 @@ const SessionCockpit: React.FC<SessionCockpitProps> = ({
             {/* Header */}
             <header className="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
+                    <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setCurrentView('dashboard')}
+                        className="text-slate-400 hover:text-white hover:bg-slate-700"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </Button>
                     <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-purple-600 rounded-lg flex items-center justify-center">
                         <Headset className="w-5 h-5 text-white" />
                     </div>
