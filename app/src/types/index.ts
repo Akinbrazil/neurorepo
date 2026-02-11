@@ -135,7 +135,7 @@ export interface PatientWithDASS21 extends Patient {
 }
 
 // Application State
-export type AppView = 'landing' | 'login' | 'dashboard' | 'session-control' | 'vr-environment' | 'patient-register' | 'dass21-form' | 'therapist-demo' | 'patient-demo' | 'vr-environments' | 'admin-crm' | 'waiting-room';
+export type AppView = 'landing' | 'login' | 'dashboard' | 'session-control' | 'session-cockpit' | 'vr-environment' | 'patient-register' | 'dass21-form' | 'therapist-demo' | 'patient-demo' | 'vr-environments' | 'admin-crm' | 'waiting-room';
 
 export interface AppState {
   currentView: AppView;

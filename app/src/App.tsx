@@ -5,6 +5,7 @@ import LandingPage from '@/sections/LandingPage';
 import LoginPage from '@/sections/LoginPage';
 import Dashboard from '@/sections/Dashboard';
 import SessionControl from '@/sections/SessionControl';
+import SessionCockpit from '@/sections/SessionCockpit';
 import VREnvironment from '@/sections/VREnvironment';
 import VREnvironments from '@/sections/VREnvironments';
 import PatientRegister from '@/sections/PatientRegister';
@@ -92,6 +93,13 @@ const AppContent: React.FC = () => {
         <div className="pt-16 min-h-screen">
           <Navbar />
           <SessionControl />
+        </div>
+      );
+
+    case 'session-cockpit':
+      return (
+        <div className="h-screen overflow-hidden">
+          <SessionCockpit patientId="P1" therapistId="T1" sessionId="session-001" />
         </div>
       );
 
