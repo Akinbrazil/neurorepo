@@ -22,6 +22,7 @@ import {
   Clock,
   ChevronRight
 } from 'lucide-react';
+import { BusinessEngine } from '@/lib/db-simulation';
 
 interface VREnvironmentProps {
   environment?: 'floresta' | 'sala-aula';
@@ -56,6 +57,8 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
   const [intensity] = useState<1 | 2 | 3>(initialIntensity);
 
   const [hasStarted, setHasStarted] = useState(false);
+  const [patientId, setPatientId] = useState<string | null>(null);
+  const [therapistId, setTherapistId] = useState<string | null>(null);
   const [currentTime] = useState(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
 
   const [isMicActive] = useState(false);
@@ -88,7 +91,17 @@ const VREnvironment: React.FC<VREnvironmentProps> = ({
     } else if (envParam === 'burnout_cabana' || envParam === 'cabana') {
       setEnvironment('floresta');
     }
+
+    setPatientId(urlParams.get('patientId'));
+    setTherapistId(urlParams.get('therapistId'));
   }, []);
+
+  // Telemetria de Conforto (Vision A)
+  useEffect(() => {
+    if (hasStarted && patientId && therapistId) {
+      BusinessEngine.updateLiveComfort(patientId, therapistId, comfortStatus, environment);
+    }
+  }, [comfortStatus, hasStarted, patientId, therapistId, environment]);
 
   useEffect(() => {
     if (!hasStarted) return;

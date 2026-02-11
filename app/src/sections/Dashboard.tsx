@@ -119,14 +119,24 @@ const Dashboard: React.FC = () => {
   const [selectedEnvironment, setSelectedEnvironment] = useState('ansiedade_lago');
   const [generatedLink, setGeneratedLink] = useState('');
   const [showLinkDisplay, setShowLinkDisplay] = useState(false);
+  const [liveSessions, setLiveSessions] = useState<any[]>([]);
+
+  // Polling para simular Telemetria Real-time (Vision A)
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      const active = BusinessEngine.getActiveSessionsForTherapist('T1');
+      setLiveSessions([...active]);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredPatients = patients.filter((p: Patient) =>
     p.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Stats
-  const totalPatients = patients.length;
-  const activeSessions = sessions.filter(s => s.status === 'in_progress').length;
+  const totalPatients = clinicalData.patients.length;
+  const activeSessionsCount = liveSessions.length;
   const scheduledSessions = sessions.filter(s => s.status === 'scheduled').length;
   const completedSessions = sessions.filter(s => s.status === 'completed').length;
 
@@ -148,7 +158,7 @@ const Dashboard: React.FC = () => {
     // Ensuring the link uses the correct view parameter for routing
     const origin = window.location.origin;
     const path = window.location.pathname;
-    const linkFinal = `${origin}${path}?view=vr-environment&room=${sessionId}&env=${selectedEnvironment}&user=patient`;
+    const linkFinal = `${origin}${path}?view=vr-environment&room=${sessionId}&env=${selectedEnvironment}&user=patient&patientId=${selectedPatient?.id}&therapistId=T1`;
 
     setGeneratedLink(linkFinal);
     setShowLinkDisplay(true);
@@ -285,7 +295,7 @@ const Dashboard: React.FC = () => {
                 <Activity className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">{activeSessions}</p>
+                <p className="text-2xl font-bold text-slate-900">{activeSessionsCount}</p>
                 <p className="text-sm text-slate-500">Sessões Ativas</p>
               </div>
             </CardContent>
@@ -313,6 +323,89 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Live Session Monitor (Vision A) */}
+        {liveSessions.length > 0 && (
+          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 shadow-sm animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <div className="relative">
+                  <Activity className="w-5 h-5 text-blue-600" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+                </div>
+                Monitoramento ao Vivo (Telemetria WebXR)
+              </h3>
+              <Badge variant="outline" className="bg-blue-600 text-white border-none px-3 py-1 animate-pulse">
+                {liveSessions.length} {liveSessions.length === 1 ? 'SESSÃO ATIVA' : 'SESSÕES ATIVAS'}
+              </Badge>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {liveSessions.map((session) => {
+                const patientObj = clinicalData.patients.find(p => p.id === session.patientId);
+                return (
+                  <Card key={session.sessionId} className="border-blue-200 bg-white shadow-md hover:shadow-lg transition-all duration-300 ring-1 ring-blue-100 overflow-hidden">
+                    <CardHeader className="p-4 pb-2 border-b border-slate-50 bg-slate-50/50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-8 h-8 border border-blue-200">
+                            <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-bold">
+                              {patientObj?.nome?.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <CardTitle className="text-sm font-bold text-slate-900">{patientObj?.nome}</CardTitle>
+                            <p className="text-[10px] text-slate-400 font-mono">{session.sessionId}</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-slate-900 text-white text-[10px] border-none uppercase tracking-tighter">
+                          {session.environment === 'floresta' ? 'Pinhal' : 'Escola'}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">Conforto</span>
+                          <div className={`px-2 py-1 rounded-full flex items-center gap-1.5 ${session.comfortLevel === 'comfortable' ? 'bg-emerald-50 text-emerald-700' :
+                              session.comfortLevel === 'uncomfortable' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'
+                            }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${session.comfortLevel === 'comfortable' ? 'bg-emerald-500' :
+                                session.comfortLevel === 'uncomfortable' ? 'bg-rose-500 animate-ping' : 'bg-amber-500'
+                              }`} />
+                            <span className="text-[10px] font-black uppercase">
+                              {session.comfortLevel === 'comfortable' ? 'Excelente' :
+                                session.comfortLevel === 'uncomfortable' ? 'Distorção' : 'Estável'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div className={`h-full transition-all duration-1000 ${session.comfortLevel === 'comfortable' ? 'w-full bg-emerald-500' :
+                              session.comfortLevel === 'uncomfortable' ? 'w-1/3 bg-rose-500' : 'w-2/3 bg-amber-500'
+                            }`} />
+                        </div>
+                      </div>
+
+                      <div className="mt-5 flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1 text-[10px] h-7 border-slate-200 hover:bg-slate-50 text-slate-600">
+                          <Phone className="w-3 h-3 mr-1" /> Falar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="flex-1 text-[10px] h-7 bg-slate-900 hover:bg-rose-600"
+                          onClick={() => BusinessEngine.endLiveSession(session.patientId)}
+                        >
+                          Encerrar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Charts Section */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">

@@ -12,6 +12,7 @@ import DASS21Form from '@/sections/DASS21Form';
 import TherapistDemo from '@/sections/TherapistDemo';
 import PatientDemo from '@/sections/PatientDemo';
 import AdminCRM from '@/sections/AdminCRM';
+import WaitingRoom from '@/sections/WaitingRoom';
 import Navbar from '@/components/Navbar';
 import { Loader2 } from 'lucide-react';
 import './App.css';
@@ -33,6 +34,8 @@ const AppContent: React.FC = () => {
       setCurrentView('vr-environments');
     } else if (view === 'vr-environment') {
       setCurrentView('vr-environment');
+    } else if (view === 'waiting-room') {
+      setCurrentView('waiting-room');
     }
   }, [setCurrentView]);
 
@@ -99,6 +102,9 @@ const AppContent: React.FC = () => {
           <VREnvironment />
         </div>
       );
+
+    case 'waiting-room':
+      return <WaitingRoom />;
 
     case 'patient-register':
       return (
