@@ -139,12 +139,7 @@ const AppContent: React.FC = () => {
       );
 
     case 'patient-demo':
-      return (
-        <div className="pt-16 min-h-screen">
-          <Navbar />
-          <PatientDemo />
-        </div>
-      );
+      return <PatientDemo />;
 
     case 'vr-environments':
       return (
